@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CFO's Cockpit - Portfolio Optimizer</title>
+
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Custom CSS -->
+    <link href="css/styles.css" rel="stylesheet">
+</head>
+<body>
+    <!-- Navigation Header -->
+    <nav class="navbar navbar-dark bg-dark">
+        <div class="container-fluid">
+            <span class="navbar-brand mb-0 h1">💼 CFO's Cockpit</span>
+            <span class="navbar-text text-light">Real-Time Portfolio Optimization Engine</span>
+        </div>
+    </nav>
+
+    <!-- Main Container -->
+    <div class="container-fluid mt-4">
+        <div class="row">
+            <!-- Sidebar -->
+            <div class="col-md-3 sidebar">
+                <div class="card">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0">📊 Portfolio Configuration</h5>
+                    </div>
+                    <div class="card-body">
+                        <!-- Ticker Selection -->
+                        <div class="mb-3">
+                            <label for="tickersInput" class="form-label">Select Tickers</label>
+                            <select class="form-select" id="tickersInput" multiple size="8">
+                                <option value="AAPL" selected>AAPL - Apple</option>
+                                <option value="MSFT" selected>MSFT - Microsoft</option>
+                                <option value="TSLA" selected>TSLA - Tesla</option>
+                                <option value="GOOGL" selected>GOOGL - Google</option>
+                                <option value="AMZN" selected>AMZN - Amazon</option>
+                                <option value="NVDA">NVDA - Nvidia</option>
+                                <option value="META">META - Meta</option>
+                                <option value="NFLX">NFLX - Netflix</option>
+                                <option value="JPM">JPM - JPMorgan</option>
+                                <option value="V">V - Visa</option>
+                                <option value="WMT">WMT - Walmart</option>
+                                <option value="DIS">DIS - Disney</option>
+                                <option value="BTC-USD">BTC-USD - Bitcoin</option>
+                                <option value="ETH-USD">ETH-USD - Ethereum</option>
+                                <option value="GLD">GLD - Gold ETF</option>
+                            </select>
+                            <small class="form-text text-muted">Hold Ctrl/Cmd to select multiple</small>
+                        </div>
+
+                        <!-- Investment Amount -->
+                        <div class="mb-3">
+                            <label for="investmentAmount" class="form-label">Investment Amount ($)</label>
+                            <input type="number" class="form-control" id="investmentAmount" value="100000" min="1000" step="5000">
+                        </div>
+
+                        <!-- Start Date -->
+                        <div class="mb-3">
+                            <label for="startDate" class="form-label">Start Date</label>
+                            <input type="date" class="form-control" id="startDate">
+                        </div>
+
+                        <!-- Refresh Button -->
+                        <button id="refreshBtn" class="btn btn-success w-100 mb-3">
+                            🔄 Refresh Data
+                        </button>
+
+                        <!-- Help Section -->
+                        <div class="accordion" id="helpAccordion">
+                            <div class="accordion-item">
+                                <h2 class="accordion-header">
+                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#helpContent">
+                                        ℹ️ How to Use
+                                    </button>
+                                </h2>
+                                <div id="helpContent" class="accordion-collapse collapse" data-bs-parent="#helpAccordion">
+                                    <div class="accordion-body small">
+                                        <p><strong>Getting Started:</strong></p>
+                                        <ol>
+                                            <li>Select 2+ tickers from the dropdown</li>
+                                            <li>Enter your investment amount</li>
+                                            <li>Choose a start date (1+ year recommended)</li>
+                                            <li>Click 'Refresh Data' to optimize</li>
+                                        </ol>
+                                        <p><strong>Understanding Results:</strong></p>
+                                        <ul>
+                                            <li><strong>Efficient Frontier:</strong> Shows all possible risk/return combinations</li>
+                                            <li><strong>Gold Star ⭐:</strong> Maximum Sharpe Ratio (best risk-adjusted return)</li>
+                                            <li><strong>Blue Diamond 🔷:</strong> Minimum Volatility (lowest risk)</li>
+                                            <li><strong>Sharpe Ratio:</strong> Higher is better (reward per unit of risk)</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Content -->
+            <div class="col-md-9">
+                <!-- Loading Overlay -->
+                <div id="loadingOverlay" class="loading-overlay" style="display: none;">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p class="mt-3">Calculating optimal portfolio...</p>
+                </div>
+
+                <!-- Alert Container -->
+                <div id="alertContainer"></div>
+
+                <!-- Efficient Frontier Chart -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">📈 Efficient Frontier Analysis</h5>
+                    </div>
+                    <div class="card-body">
+                        <div id="efficientFrontierChart" class="chart-container"></div>
+                        <div id="emptyState" class="text-center text-muted py-5">
+                            <h5>Select tickers and click Refresh to get started</h5>
+                            <p>The Efficient Frontier will appear here</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Portfolio Allocation -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">🎯 Optimal Portfolio Allocation</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <!-- Allocation Chart -->
+                            <div class="col-md-6">
+                                <h6>Portfolio Breakdown</h6>
+                                <div id="allocationChart" class="chart-container"></div>
+                            </div>
+
+                            <!-- Performance Metrics -->
+                            <div class="col-md-6">
+                                <h6>Performance Metrics</h6>
+                                <div id="metricsCards" class="metrics-container">
+                                    <div class="card mb-2">
+                                        <div class="card-body text-center">
+                                            <small class="text-muted">Expected Annual Return</small>
+                                            <h4 id="returnMetric" class="mb-0">--</h4>
+                                        </div>
+                                    </div>
+                                    <div class="card mb-2">
+                                        <div class="card-body text-center">
+                                            <small class="text-muted">Annual Volatility</small>
+                                            <h4 id="volatilityMetric" class="mb-0">--</h4>
+                                        </div>
+                                    </div>
+                                    <div class="card mb-2">
+                                        <div class="card-body text-center">
+                                            <small class="text-muted">Sharpe Ratio</small>
+                                            <h4 id="sharpeMetric" class="mb-0">--</h4>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Raw Market Data -->
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">📊 Raw Market Data</h5>
+                    </div>
+                    <div class="card-body">
+                        <div id="marketDataTable" class="table-responsive"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer mt-5 py-3 bg-light">
+        <div class="container-fluid text-center text-muted">
+            <small>Built with FastAPI | Data from Yahoo Finance | Powered by PyPortfolioOpt</small>
+        </div>
+    </footer>
+
+    <!-- Bootstrap JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Plotly.js -->
+    <script src="https://cdn.plotly.com/plotly-2.26.0.min.js"></script>
+
+    <!-- Custom Scripts -->
+    <script src="js/api.js"></script>
+    <script src="js/charts.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
