@@ -1,498 +1,849 @@
-# CFO's Cockpit - Master Development Roadmap
+# CFO's Cockpit - Master Development Roadmap (FastAPI + React/Vanilla JS)
 **Project**: Real-Time Portfolio Optimization Engine
-**Tech Stack**: Streamlit, yfinance, PyPortfolioOpt, Plotly, Python 3.9+
-**Reference**: Part Time Larry - Streamlit Financial Dashboards
+**Architecture**: FastAPI Backend + HTML/JS Frontend + Supabase Database
 **Status**: Ready for Execution
 
 ---
 
-## 📋 Project Overview
+## 📋 Architecture Overview
 
-This dashboard is NOT just a portfolio tracker - it's a **decision-support system** that calculates what you SHOULD own based on Modern Portfolio Theory's Efficient Frontier. It balances mathematical rigor with executive-level visualization.
+**Modern Web Stack (Recommended):**
 
-**Key Differentiator**: Uses CAPM for expected returns + Ledoit-Wolf Shrinkage for risk modeling (prevents extreme allocations that plague amateur portfolio optimizers).
+### Backend (FastAPI - Python)
+- **Purpose**: REST API serving portfolio optimization logic
+- **Port**: localhost:8000
+- **Key Features**:
+  - RESTful endpoints for data fetching and optimization
+  - PyPortfolioOpt integration for portfolio calculations
+  - yfinance integration for market data
+  - CORS enabled for frontend communication
+  - Auto-generated API documentation (Swagger UI)
+
+### Frontend (HTML/CSS/JavaScript)
+- **Purpose**: Interactive dashboard UI
+- **Port**: localhost:3000 or file://
+- **Key Features**:
+  - Vanilla JavaScript (no framework dependency initially)
+  - Plotly.js for interactive charts
+  - Bootstrap 5 for responsive design
+  - Fetch API for backend communication
+
+### Database (Supabase - PostgreSQL)
+- **Purpose**: Data persistence and caching
+- **Key Features**:
+  - User portfolios/preferences storage
+  - Cached market data (reduce API calls to yfinance)
+  - Historical optimization results
+  - Real-time capabilities (future enhancement)
+
+### Data Flow:
+```
+User → Frontend (JS) → FastAPI Endpoints → PyPortfolioOpt/yfinance
+                                         ↓
+                                    Supabase Cache
+```
+
+**Key Differentiator**:
+- API-first architecture (can add mobile app later)
+- Clean separation of concerns
+- No Streamlit dependency
+- Production-ready scalability
+- Modern tech stack aligning with industry standards
 
 ---
 
-## 🏗️ PHASE 1: The "Hollow Shell" & Navigation
-**Goal**: Create a functional web app skeleton with proper UI layout (NO math yet)
-**Reference Video**: 00:06:50 - 00:18:00
+## 🏗️ PHASE 1: Project Setup & Backend Foundation
 
-### Step 1.1: Project Setup
+**Goal**: Create FastAPI backend with core endpoints and project structure
+
+### Step 1.1: Project Structure Setup
+
 ```bash
-# Create project structure
-mkdir "AI Investment Dashboard Project"
-cd "AI Investment Dashboard Project"
+AI Investment Dashboard Project/
+├── backend/
+│   ├── main.py                 # FastAPI app entry point
+│   ├── api/
+│   │   ├── __init__.py
+│   │   ├── stocks.py           # Stock data endpoints
+│   │   ├── portfolio.py        # Portfolio optimization endpoints
+│   │   └── database.py         # Supabase integration
+│   ├── services/
+│   │   ├── __init__.py
+│   │   ├── data_fetcher.py     # yfinance integration
+│   │   ├── optimizer.py        # PyPortfolioOpt logic
+│   │   └── cache_manager.py    # Caching logic
+│   └── requirements.txt
+├── frontend/
+│   ├── index.html              # Main dashboard
+│   ├── css/
+│   │   └── styles.css          # Custom styles
+│   ├── js/
+│   │   ├── app.js              # Main application logic
+│   │   ├── api.js              # API communication
+│   │   └── charts.js           # Plotly chart configurations
+│   └── assets/
+│       └── logo.svg            # Optional branding
+├── supabase/
+│   └── schema.sql              # Database schema
+├── .env.example                # Environment variables template
+└── README.md
 ```
 
-### Step 1.2: Create requirements.txt
+### Step 1.2: Backend Requirements
+
+Create `backend/requirements.txt`:
 ```
-streamlit==1.31.0
+fastapi==0.109.0
+uvicorn[standard]==0.27.0
 yfinance==0.2.36
 pyportfolioopt==1.5.5
-plotly==5.18.0
 pandas==2.2.0
 numpy==1.26.3
+python-dotenv==1.0.0
+supabase==2.3.0
+pydantic==2.5.3
+pydantic-settings==2.1.0
+python-multipart==0.0.6
 ```
 
-### Step 1.3: Create app.py Skeleton
+### Step 1.3: Create FastAPI Backend (main.py)
 
 **Instructions for Claude:**
 ```
-Create app.py with the following structure:
+Create backend/main.py with:
 
-1. Import statements (streamlit, yfinance, pypfopt, plotly, pandas, numpy)
+1. Import statements:
+   - FastAPI, CORSMiddleware
+   - API routers (stocks, portfolio)
+   - Environment variables setup
 
-2. Page Configuration:
-   - Use st.set_page_config()
-   - Title: "CFO's Cockpit"
-   - Layout: "wide"
-   - Icon: 💼
+2. FastAPI App Configuration:
+   - Title: "CFO's Cockpit API"
+   - Description: "Portfolio Optimization Engine API"
+   - Version: "1.0.0"
+   - Docs URL: "/docs" (Swagger UI auto-generated)
 
-3. App Title & Description:
-   - Main header: "CFO's Cockpit - Real-Time Portfolio Optimizer"
-   - Subtitle explaining it uses Modern Portfolio Theory
+3. CORS Configuration:
+   - Allow origins: ["http://localhost:3000", "file://"]
+   - Allow credentials: True
+   - Allow methods: ["*"]
+   - Allow headers: ["*"]
 
-4. Sidebar - "Portfolio Configuration":
-   - Section header: "📊 Portfolio Settings"
-   - Multiselect for tickers (Default: AAPL, MSFT, TSLA, GOOGL, AMZN)
-   - Number input for "Investment Amount ($)" (Default: 100000, min: 1000)
-   - Date input for "Start Date" (Default: 1 year ago from today)
-   - Button: "🔄 Refresh Data"
+4. Include routers:
+   - /api/stocks (stock data endpoints)
+   - /api/portfolio (optimization endpoints)
 
-5. Main Area Placeholders (use st.container()):
-   - "📈 Efficient Frontier Analysis"
-   - "🎯 Optimal Portfolio Allocation"
-   - "📊 Raw Market Data"
+5. Root endpoint:
+   - GET / returns {"message": "CFO's Cockpit API", "status": "running"}
 
-CRITICAL: Do NOT write any data fetching or math logic yet. Just the UI structure.
+6. Health check endpoint:
+   - GET /health returns {"status": "healthy"}
+```
+
+### Step 1.4: Stock Data Endpoints (api/stocks.py)
+
+**Instructions for Claude:**
+```
+Create backend/api/stocks.py with:
+
+1. GET /api/stocks/historical
+   - Query params: tickers (comma-separated), start_date, end_date (optional)
+   - Returns: JSON with historical adjusted close prices
+   - Implements caching (15-minute TTL)
+   - Error handling for invalid tickers
+
+2. GET /api/stocks/info
+   - Query params: ticker
+   - Returns: Company info (name, sector, industry)
+   - Uses yfinance.Ticker().info
+
+3. Response model (Pydantic):
+   - StockDataResponse with dates, tickers, prices
+
+4. Error responses:
+   - 400: Invalid ticker format
+   - 404: Ticker not found
+   - 500: yfinance API error
+```
+
+### Step 1.5: Portfolio Optimization Endpoints (api/portfolio.py)
+
+**Instructions for Claude:**
+```
+Create backend/api/portfolio.py with:
+
+1. POST /api/portfolio/optimize
+   - Request body: {
+       tickers: List[str],
+       start_date: str,
+       investment_amount: float,
+       optimization_type: "max_sharpe" | "min_volatility" | "efficient_risk",
+       target_volatility: Optional[float]
+     }
+   - Returns: {
+       weights: Dict[str, float],
+       performance: {
+         expected_return: float,
+         volatility: float,
+         sharpe_ratio: float
+       },
+       allocations: Dict[str, float] (dollar amounts)
+     }
+
+2. POST /api/portfolio/efficient-frontier
+   - Request body: Same as optimize
+   - Returns: {
+       simulated_portfolios: {
+         returns: List[float],
+         volatilities: List[float],
+         sharpe_ratios: List[float]
+       },
+       optimal_portfolios: {
+         max_sharpe: {...},
+         min_volatility: {...}
+       }
+     }
+
+3. POST /api/portfolio/save
+   - Request body: Portfolio data + user_id
+   - Saves to Supabase
+   - Returns: portfolio_id
+
+4. GET /api/portfolio/load/{portfolio_id}
+   - Returns saved portfolio from Supabase
+```
+
+### Step 1.6: Data Fetcher Service (services/data_fetcher.py)
+
+**Instructions for Claude:**
+```
+Create backend/services/data_fetcher.py:
+
+1. Function: fetch_stock_data(tickers, start_date, end_date=None)
+   - Uses yfinance.download()
+   - Downloads "Adj Close" prices
+   - Data cleaning: dropna(axis=1)
+   - Returns pandas DataFrame
+
+2. Function: get_stock_info(ticker)
+   - Uses yfinance.Ticker(ticker).info
+   - Returns dict with name, sector, industry
+
+3. CRITICAL: Implement caching decorator
+   - Use functools.lru_cache or manual dict cache
+   - 15-minute TTL
+   - Cache key: tickers + start_date + end_date
+
+4. Error handling:
+   - Try/except for yfinance errors
+   - Validate ticker format
+   - Handle network timeouts
+```
+
+### Step 1.7: Portfolio Optimizer Service (services/optimizer.py)
+
+**Instructions for Claude:**
+```
+Create backend/services/optimizer.py:
+
+1. Function: calculate_expected_returns(price_data)
+   - Uses pypfopt.expected_returns.capm_return()
+   - Returns Series of expected returns
+
+2. Function: calculate_covariance_matrix(price_data)
+   - Uses pypfopt.risk_models.CovarianceShrinkage().ledoit_wolf()
+   - Returns covariance matrix
+
+3. Function: optimize_portfolio(mu, S, optimization_type, target_vol=None)
+   - Creates EfficientFrontier object
+   - Supports: max_sharpe, min_volatility, efficient_risk
+   - Returns: cleaned_weights, performance_metrics
+
+4. Function: simulate_efficient_frontier(mu, S, num_portfolios=5000)
+   - Monte Carlo simulation
+   - Generates random portfolios
+   - Returns: returns_array, volatilities_array, sharpe_ratios_array
+
+5. Function: calculate_dollar_allocations(weights, investment_amount)
+   - Converts percentage weights to dollar amounts
+   - Returns: Dict[ticker, dollar_amount]
 ```
 
 ### ✅ Phase 1 Completion Checklist:
-- [ ] Can you run `streamlit run app.py` without errors?
-- [ ] Does the sidebar show the multiselect with default tickers?
-- [ ] Are all three placeholder sections visible?
-- [ ] Does the app have the correct title and icon?
+- [ ] Backend directory structure created
+- [ ] requirements.txt with all dependencies
+- [ ] FastAPI app runs without errors: `uvicorn backend.main:app --reload`
+- [ ] Swagger UI accessible at http://localhost:8000/docs
+- [ ] All endpoints return correct response models
+- [ ] Stock data fetching works with yfinance
+- [ ] Portfolio optimization logic is functional
+- [ ] Caching mechanism is implemented
 
 **Manager's Anti-Mistake Check:**
-- ✓ Used `multiselect` (not text_input) - prevents ticker typos
-- ✓ Layout set to "wide" for dashboard feel
-- ✓ Investment amount has minimum value validation
+- ✓ CORS enabled (frontend can communicate with backend)
+- ✓ Environment variables setup for secrets
+- ✓ Pydantic models for request/response validation
+- ✓ Using CAPM + Ledoit-Wolf (not simple mean/covariance)
 
 ---
 
-## 📊 PHASE 2: Data Pipeline (Robust Ingestion)
-**Goal**: Replace dummy data with real market data using yfinance with intelligent caching
-**Reference Video**: 00:21:00 - 00:26:00
+## 🗄️ PHASE 2: Supabase Database Setup
 
-### Step 2.1: Implement Data Fetching Function
+**Goal**: Set up Supabase project and integrate with backend
+
+### Step 2.1: Supabase Project Setup
+
+**Instructions for User:**
+```
+1. Go to https://supabase.com
+2. Create free account
+3. Create new project: "cfo-cockpit"
+4. Save the following from project settings:
+   - Project URL (e.g., https://xxxxx.supabase.co)
+   - API Key (anon/public key)
+   - Service Role Key (for backend use)
+5. Add to .env file
+```
+
+### Step 2.2: Database Schema
+
+Create `supabase/schema.sql`:
+
+```sql
+-- Market Data Cache Table
+CREATE TABLE market_data_cache (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  ticker VARCHAR(10) NOT NULL,
+  date DATE NOT NULL,
+  adj_close DECIMAL(10, 2) NOT NULL,
+  cached_at TIMESTAMP DEFAULT NOW(),
+  UNIQUE(ticker, date)
+);
+
+CREATE INDEX idx_market_data_ticker ON market_data_cache(ticker);
+CREATE INDEX idx_market_data_date ON market_data_cache(date);
+
+-- Portfolios Table
+CREATE TABLE portfolios (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  user_id VARCHAR(255),
+  name VARCHAR(255) NOT NULL,
+  tickers TEXT[] NOT NULL,
+  weights JSONB NOT NULL,
+  investment_amount DECIMAL(12, 2) NOT NULL,
+  expected_return DECIMAL(5, 4),
+  volatility DECIMAL(5, 4),
+  sharpe_ratio DECIMAL(5, 4),
+  optimization_type VARCHAR(50),
+  created_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP DEFAULT NOW()
+);
+
+CREATE INDEX idx_portfolios_user ON portfolios(user_id);
+
+-- Optimization Results Cache Table
+CREATE TABLE optimization_cache (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  tickers_hash VARCHAR(64) NOT NULL,
+  start_date DATE NOT NULL,
+  optimization_type VARCHAR(50) NOT NULL,
+  result JSONB NOT NULL,
+  cached_at TIMESTAMP DEFAULT NOW(),
+  UNIQUE(tickers_hash, start_date, optimization_type)
+);
+
+CREATE INDEX idx_optimization_cache_hash ON optimization_cache(tickers_hash);
+```
+
+### Step 2.3: Supabase Integration (api/database.py)
 
 **Instructions for Claude:**
 ```
-Create a function get_stock_data(tickers, start_date):
+Create backend/api/database.py:
 
-1. CRITICAL: Decorate with @st.cache_data(ttl=900)
-   - TTL = 900 seconds (15 minutes)
-   - This prevents API rate limiting and makes the app feel "snappy"
+1. Import supabase client
+   - from supabase import create_client, Client
+   - Load SUPABASE_URL and SUPABASE_KEY from .env
 
-2. Function Logic:
-   - Use yfinance.download() to fetch "Adj Close" prices
-   - Parameters: tickers, start=start_date, end=today
-   - Store in a pandas DataFrame
+2. Function: get_cached_market_data(ticker, start_date, end_date)
+   - Query market_data_cache table
+   - Return cached data if available and fresh (< 24 hours old)
+   - Return None if cache miss
 
-3. Data Cleaning (CRITICAL):
-   - Drop any columns (tickers) with NaN values using dropna(axis=1)
-   - Print warning if tickers were removed: "⚠️ Removed X tickers due to missing data"
-   - Return the cleaned DataFrame
+3. Function: save_market_data_cache(ticker, date, adj_close)
+   - Insert into market_data_cache
+   - Use UPSERT to handle duplicates
 
-4. Error Handling:
-   - Wrap in try/except block
-   - If yfinance fails, display st.error() with helpful message
-   - Return None on failure
-```
+4. Function: save_portfolio(portfolio_data)
+   - Insert into portfolios table
+   - Return portfolio_id
 
-### Step 2.2: Display Raw Data
+5. Function: load_portfolio(portfolio_id)
+   - Query portfolios table
+   - Return portfolio data
 
-**Instructions for Claude:**
-```
-In the "Raw Market Data" section:
+6. Function: get_optimization_cache(tickers_hash, start_date, optimization_type)
+   - Query optimization_cache table
+   - Return cached result if available and fresh (< 1 hour old)
 
-1. Call get_stock_data() with user's selected tickers and date
-2. If data is None, show error and stop execution
-3. Display the dataframe using st.dataframe(use_container_width=True)
-4. Show summary metrics:
-   - Number of trading days
-   - Date range covered
-   - Tickers successfully loaded
+7. Function: save_optimization_cache(tickers_hash, start_date, optimization_type, result)
+   - Insert into optimization_cache
 ```
 
 ### ✅ Phase 2 Completion Checklist:
-- [ ] Data loads without errors when you click "Refresh Data"
-- [ ] App doesn't re-download data on every slider interaction (caching works)
-- [ ] Missing tickers are automatically removed with a warning
-- [ ] Raw data table displays correctly with all columns
+- [ ] Supabase project created
+- [ ] Database schema executed in SQL Editor
+- [ ] .env file configured with Supabase credentials
+- [ ] Supabase client initialized in backend
+- [ ] Cache functions work (read/write to database)
+- [ ] Portfolio save/load functions work
 
 **Manager's Anti-Mistake Check:**
-- ✓ Caching enabled with TTL (without this, app lags 5-10 seconds per interaction)
-- ✓ Using "Adj Close" (NOT regular "Close" - accounts for splits/dividends)
-- ✓ NaN handling prevents silent optimizer failures
+- ✓ Using Service Role Key for backend (not anon key)
+- ✓ Environment variables are NOT committed to git (.gitignore)
+- ✓ Cache expiration logic implemented
+- ✓ UPSERT used to prevent duplicate cache entries
 
 ---
 
-## 🧮 PHASE 3: The "Brain" (Portfolio Optimization Engine)
-**Goal**: Implement PyPortfolioOpt with professional-grade settings
-**Reference Video**: 00:38:00 (Database Logic equivalent)
+## 🎨 PHASE 3: Frontend Dashboard (HTML/CSS/JS)
 
-### Step 3.1: Calculate Expected Returns & Risk
+**Goal**: Create interactive portfolio dashboard UI
 
-**Instructions for Claude:**
-```
-Create a function calculate_portfolio_metrics(price_data):
-
-1. Import required modules:
-   from pypfopt import risk_models, expected_returns
-   from pypfopt.efficient_frontier import EfficientFrontier
-
-2. Calculate Expected Returns (mu):
-   - Use expected_returns.capm_return(price_data)
-   - WHY CAPM? Forward-looking, factor-based (better than simple historical mean)
-
-3. Calculate Covariance Matrix (S):
-   - Use risk_models.CovarianceShrinkage(price_data).ledoit_wolf()
-   - WHY Shrinkage? Prevents extreme allocations (e.g., 100% in one stock)
-   - Standard covariance is "noisy" - shrinkage makes it robust
-
-4. Sanity Check Display:
-   - Create an expander: "🔍 View Expected Returns"
-   - Display mu as a bar chart (st.bar_chart)
-   - Show annualized return % for each ticker
-
-5. Return (mu, S) as a tuple
-```
-
-### Step 3.2: Initialize Efficient Frontier
+### Step 3.1: HTML Structure (frontend/index.html)
 
 **Instructions for Claude:**
 ```
-Create a function get_efficient_frontier(mu, S):
+Create frontend/index.html with:
 
-1. Initialize EfficientFrontier object:
-   ef = EfficientFrontier(mu, S)
+1. HTML5 Boilerplate:
+   - Meta tags for responsive design
+   - Title: "CFO's Cockpit - Portfolio Optimizer"
+   - Link Bootstrap 5 CSS
+   - Link Plotly.js from CDN
+   - Link custom styles.css
 
-2. Calculate TWO optimal portfolios:
+2. Navigation Header:
+   - Brand: "💼 CFO's Cockpit"
+   - Subtitle: "Real-Time Portfolio Optimization Engine"
 
-   a) Max Sharpe Ratio Portfolio:
-      - ef_max_sharpe = EfficientFrontier(mu, S)
-      - weights_max_sharpe = ef_max_sharpe.max_sharpe()
-      - Clean weights using ef_max_sharpe.clean_weights()
-      - Get performance: ef_max_sharpe.portfolio_performance()
+3. Main Layout (Bootstrap Grid):
+   - Sidebar (col-md-3):
+     * Portfolio Configuration form
+     * Ticker multiselect (use Select2 or native)
+     * Investment amount input
+     * Date range picker
+     * Refresh button
+     * Help accordion section
 
-   b) Min Volatility Portfolio:
-      - ef_min_vol = EfficientFrontier(mu, S)
-      - weights_min_vol = ef_min_vol.min_volatility()
-      - Clean weights using ef_min_vol.clean_weights()
-      - Get performance: ef_min_vol.portfolio_performance()
+   - Main Content (col-md-9):
+     * Section 1: Efficient Frontier Chart (canvas/div)
+     * Section 2: Two columns:
+       - Portfolio Allocation Chart
+       - Performance Metrics cards
+     * Section 3: Raw Market Data table
 
-3. Return both sets of weights and performance metrics
+4. Footer:
+   - "Built with FastAPI | Data from Yahoo Finance | Powered by PyPortfolioOpt"
 
-NOTE: We create TWO separate EfficientFrontier objects because each optimization
-      modifies the internal state (you can't reuse the same object).
+5. Script tags:
+   - Bootstrap JS bundle
+   - Plotly.js
+   - Custom scripts: api.js, charts.js, app.js (in that order)
+```
+
+### Step 3.2: CSS Styling (frontend/css/styles.css)
+
+**Instructions for Claude:**
+```
+Create frontend/css/styles.css with:
+
+1. Root Variables:
+   - Primary color: #2c3e50
+   - Accent color: #3498db
+   - Success color: #2ecc71
+   - Danger color: #e74c3c
+   - Background: #ecf0f1
+
+2. Layout Styles:
+   - Sidebar: Fixed height, scrollable, background color
+   - Main content: Padding, max-width
+   - Card styles for metrics
+
+3. Component Styles:
+   - Custom button hover effects
+   - Input field styling
+   - Loading spinner animation
+   - Chart container sizing
+
+4. Responsive Design:
+   - Mobile breakpoints
+   - Collapsible sidebar on small screens
+```
+
+### Step 3.3: API Communication (frontend/js/api.js)
+
+**Instructions for Claude:**
+```
+Create frontend/js/api.js:
+
+1. API Base URL constant:
+   const API_BASE_URL = 'http://localhost:8000';
+
+2. Function: fetchStockData(tickers, startDate, endDate)
+   - Fetch GET /api/stocks/historical
+   - Returns Promise<StockDataResponse>
+   - Error handling with user-friendly messages
+
+3. Function: optimizePortfolio(requestBody)
+   - Fetch POST /api/portfolio/optimize
+   - Returns Promise<OptimizationResponse>
+   - Loading state management
+
+4. Function: getEfficientFrontier(requestBody)
+   - Fetch POST /api/portfolio/efficient-frontier
+   - Returns Promise<EfficientFrontierResponse>
+
+5. Function: savePortfolio(portfolioData)
+   - Fetch POST /api/portfolio/save
+   - Returns portfolio_id
+
+6. Function: loadPortfolio(portfolioId)
+   - Fetch GET /api/portfolio/load/{portfolioId}
+   - Returns saved portfolio
+
+7. Helper: handleApiError(error)
+   - Displays error toast/alert
+   - Logs to console for debugging
+```
+
+### Step 3.4: Chart Rendering (frontend/js/charts.js)
+
+**Instructions for Claude:**
+```
+Create frontend/js/charts.js:
+
+1. Function: renderEfficientFrontier(data)
+   - Creates Plotly scatter plot
+   - Simulated portfolios (grey dots)
+   - Max Sharpe marker (gold star)
+   - Min Volatility marker (blue diamond)
+   - Axes: Volatility (X) vs Expected Return (Y)
+   - Layout: Dark theme, responsive
+
+2. Function: renderAllocationChart(weights)
+   - Creates Plotly donut chart
+   - Shows percentage allocations
+   - Filters out zero weights
+   - Color scheme: Plotly default
+   - Hover info: Ticker, percentage, dollar amount
+
+3. Function: renderMetricsCards(performance)
+   - Updates HTML metric cards
+   - Expected Return (formatted as %)
+   - Volatility (formatted as %)
+   - Sharpe Ratio (2 decimals)
+   - Color coding based on values
+
+4. Function: renderMarketDataTable(data)
+   - Creates HTML table
+   - Columns: Date, Ticker1, Ticker2, ...
+   - Sortable headers
+   - Pagination (optional)
+```
+
+### Step 3.5: Application Logic (frontend/js/app.js)
+
+**Instructions for Claude:**
+```
+Create frontend/js/app.js:
+
+1. DOM Ready Event:
+   - Initialize form elements
+   - Set default values (tickers, amount, date)
+   - Attach event listeners
+
+2. Event: Refresh Button Click
+   - Get form values (tickers, amount, date)
+   - Validate inputs (min 2 tickers, valid date)
+   - Show loading spinner
+   - Call API functions in sequence:
+     * fetchStockData()
+     * optimizePortfolio()
+     * getEfficientFrontier()
+   - Render all charts and metrics
+   - Hide loading spinner
+   - Handle errors gracefully
+
+3. Function: validateInputs()
+   - Check ticker count >= 2
+   - Check start date is before today
+   - Check investment amount > 0
+   - Display validation errors
+
+4. Function: showLoadingState()
+   - Display spinner overlay
+   - Disable form inputs
+   - Show "Calculating..." message
+
+5. Function: hideLoadingState()
+   - Hide spinner
+   - Enable form inputs
+
+6. Function: displayError(message)
+   - Show Bootstrap alert/toast
+   - User-friendly error message
 ```
 
 ### ✅ Phase 3 Completion Checklist:
-- [ ] Expected returns display correctly (all positive or negative where expected)
-- [ ] No errors when calculating covariance matrix
-- [ ] Max Sharpe portfolio weights sum to 1.0 (100%)
-- [ ] Min Volatility portfolio weights sum to 1.0 (100%)
-- [ ] Performance metrics show expected return, volatility, and Sharpe ratio
+- [ ] HTML structure renders correctly
+- [ ] CSS styling looks professional
+- [ ] API communication works (test with backend running)
+- [ ] Charts render with sample data
+- [ ] Form validation works
+- [ ] Loading states display properly
+- [ ] Error messages are user-friendly
+- [ ] Responsive design works on mobile
 
 **Manager's Anti-Mistake Check:**
-- ✓ Using CAPM (not simple mean) for expected returns
-- ✓ Using Ledoit-Wolf Shrinkage (not basic covariance)
-- ✓ Cleaning weights (removes tiny allocations like 0.0001%)
+- ✓ CORS issues resolved (backend allows frontend origin)
+- ✓ API_BASE_URL is configurable (not hardcoded throughout)
+- ✓ Async/await used properly (no unhandled promises)
+- ✓ Charts are responsive (resize with window)
 
 ---
 
-## 🎨 PHASE 4: The "Cockpit" Visualization
-**Goal**: Create the Efficient Frontier scatter plot with interactive Plotly charts
-**Reference Video**: 00:49:30
+## 🎛️ PHASE 4: Advanced Features & Interactivity
 
-### Step 4.1: Generate Efficient Frontier Curve
+**Goal**: Add risk tolerance controls, constraints, and export functionality
 
-**Instructions for Claude:**
-```
-Create a function simulate_portfolios(mu, S, num_portfolios=5000):
-
-1. Initialize empty lists for returns, volatilities, and sharpe ratios
-
-2. Run Monte Carlo simulation:
-   - Loop num_portfolios times
-   - Generate random weights that sum to 1.0
-   - For each set of weights:
-     * Calculate portfolio return: weights @ mu
-     * Calculate portfolio volatility: sqrt(weights @ S @ weights)
-     * Calculate Sharpe ratio: return / volatility
-   - Store each result
-
-3. Return three arrays: returns, volatilities, sharpe_ratios
-
-NOTE: This creates the "cloud" of possible portfolios to show the frontier.
-```
-
-### Step 4.2: Create Efficient Frontier Plot
+### Step 4.1: Risk Tolerance Slider
 
 **Instructions for Claude:**
 ```
-Create a function plot_efficient_frontier(sim_returns, sim_vols, sim_sharpes,
-                                          max_sharpe_perf, min_vol_perf):
+In frontend/index.html sidebar:
 
-Use Plotly Graph Objects (go):
+1. Add Risk Tolerance Slider:
+   - Range: 5% to 40%, default: 20%
+   - Label: "🎚️ Target Volatility"
+   - Real-time update on slide
 
-1. Create scatter plot for simulated portfolios:
-   - X-axis: sim_vols (Volatility)
-   - Y-axis: sim_returns (Expected Return)
-   - Color: sim_sharpes (colorscale='Viridis')
-   - Mode: 'markers'
-   - Marker size: 3
-   - Opacity: 0.5
-   - Name: "Simulated Portfolios"
+2. Update app.js:
+   - On slider change, trigger optimization with efficient_risk type
+   - Update charts dynamically
+   - Debounce slider events (wait 500ms after user stops)
 
-2. Add Max Sharpe Portfolio marker:
-   - X: max_sharpe_perf[1] (volatility)
-   - Y: max_sharpe_perf[0] (return)
-   - Marker: Large gold star (⭐)
-   - Size: 20
-   - Name: "Max Sharpe Ratio"
-
-3. Add Min Volatility Portfolio marker:
-   - X: min_vol_perf[1]
-   - Y: min_vol_perf[0]
-   - Marker: Large blue diamond (🔷)
-   - Size: 20
-   - Name: "Min Volatility"
-
-4. Layout Configuration:
-   - Title: "Efficient Frontier Analysis"
-   - X-axis label: "Volatility (Risk)"
-   - Y-axis label: "Expected Annual Return"
-   - Template: "plotly_dark"
-   - Height: 600
-
-5. Display using st.plotly_chart(fig, use_container_width=True)
+3. Update backend/api/portfolio.py:
+   - Handle efficient_risk optimization type
+   - Use ef.efficient_risk(target_volatility)
 ```
 
-### Step 4.3: Create Portfolio Allocation Charts
+### Step 4.2: Portfolio Constraints
 
 **Instructions for Claude:**
 ```
-Create two-column layout for allocation details:
+In frontend sidebar (Advanced Settings accordion):
 
-Column 1 - Donut Chart (Max Sharpe Portfolio):
-1. Use go.Pie with hole=0.4
-2. Show only non-zero weights (filter out 0% allocations)
-3. Display ticker labels with percentages
-4. Color scheme: Plotly default colors
-5. Title: "🎯 Optimal Allocation (Max Sharpe)"
+1. Add Max Single Asset Allocation Slider:
+   - Range: 10% to 100%, default: 40%
+   - Label: "Max Allocation per Asset"
 
-Column 2 - Metrics Display:
-1. Use st.metric() widgets:
-   - Expected Annual Return (format as %)
-   - Annual Volatility (format as %)
-   - Sharpe Ratio (2 decimal places)
+2. Update OptimizationRequest model:
+   - Add max_weight: Optional[float]
+   - Apply constraint: ef.add_constraint(lambda w: w <= max_weight)
 
-2. Add dollar allocation breakdown:
-   - For each ticker with >1% allocation
-   - Show: Ticker | % | Dollar Amount
-   - Use user's investment amount for calculations
+3. Add checkbox options:
+   - "Show Min Volatility Portfolio" (toggle display)
+   - "Apply Sector Constraints" (future feature - placeholder)
+```
+
+### Step 4.3: Export Functionality
+
+**Instructions for Claude:**
+```
+In frontend below main charts:
+
+1. Add Export Buttons:
+   - "📥 Export Allocation (CSV)"
+   - "📄 Download Report (TXT)"
+   - "📊 Export Historical Data (CSV)"
+
+2. JavaScript functions:
+   - generateCSV(data): Creates CSV string from data
+   - downloadFile(content, filename): Triggers download
+   - formatPerformanceReport(): Creates text report
+
+3. CSV Format for allocation:
+   Ticker,Weight (%),Dollar Amount
+   AAPL,35.5,$35,500
+   MSFT,28.3,$28,300
+   ...
+
+4. Report Format:
+   CFO's Cockpit Portfolio Report
+   Generated: [Date Time]
+   Investment Amount: $100,000
+   Tickers: AAPL, MSFT, TSLA, GOOGL, AMZN
+
+   Performance Metrics:
+   - Expected Annual Return: 15.3%
+   - Annual Volatility: 18.2%
+   - Sharpe Ratio: 0.84
+
+   Optimal Allocation:
+   [Table of weights and dollar amounts]
 ```
 
 ### ✅ Phase 4 Completion Checklist:
-- [ ] Efficient Frontier plot displays with grey simulation dots
-- [ ] Gold star (Max Sharpe) is clearly visible
-- [ ] Blue diamond (Min Volatility) is clearly visible
-- [ ] Axes are properly labeled (Volatility vs Return)
-- [ ] Donut chart shows portfolio breakdown
-- [ ] Metrics display correct values (return, volatility, Sharpe)
-- [ ] Dollar amounts match user's investment input
+- [ ] Risk tolerance slider updates portfolio in real-time
+- [ ] Max allocation constraint works correctly
+- [ ] Toggles show/hide elements properly
+- [ ] CSV export downloads with correct formatting
+- [ ] Performance report includes all key data
+- [ ] Export filenames include timestamp
 
 **Manager's Anti-Mistake Check:**
-- ✓ X-axis is Volatility, Y-axis is Return (not reversed)
-- ✓ Gold star is visible and labeled
-- ✓ Charts are responsive (use_container_width=True)
-- ✓ Zero-weight allocations are hidden from donut chart
+- ✓ Debouncing prevents API spam on slider changes
+- ✓ Constraints are validated on backend (not just frontend)
+- ✓ Export files have proper MIME types
+- ✓ All calculations update when constraints change
 
 ---
 
-## 🎛️ PHASE 5: The "What-If" Interactivity
-**Goal**: Add live controls for risk tolerance and constraints
-**Reference Video**: 00:42:30
+## 🛡️ PHASE 5: Error Handling, Caching & Polish
 
-### Step 5.1: Add Risk Tolerance Slider
+**Goal**: Production-ready error handling and performance optimization
 
-**Instructions for Claude:**
-```
-In the sidebar, add interactive controls:
-
-1. Risk Tolerance Slider:
-   - st.slider("🎚️ Risk Tolerance (Target Volatility)")
-   - Min: 5%, Max: 40%, Default: 20%
-   - Step: 1%
-   - Help text: "Adjust your acceptable portfolio volatility"
-
-2. Create function get_efficient_risk_portfolio(mu, S, target_volatility):
-   - Initialize new EfficientFrontier object
-   - Use ef.efficient_risk(target_volatility)
-   - Return cleaned weights and performance
-
-3. Add toggle option:
-   - Checkbox: "Show Min Volatility Portfolio"
-   - If checked, display both Max Sharpe and Min Vol
-   - If unchecked, only show Max Sharpe
-```
-
-### Step 5.2: Add Portfolio Constraints (Advanced)
+### Step 5.1: Backend Error Handling
 
 **Instructions for Claude:**
 ```
-Add optional constraints section in sidebar (within expander):
+In backend endpoints:
 
-1. Weight Bounds:
-   - Slider: "Max Single Asset Allocation"
-   - Range: 10% to 100%, Default: 40%
-   - Prevents over-concentration
+1. Add global exception handler (main.py):
+   @app.exception_handler(Exception)
+   - Catches all unhandled exceptions
+   - Returns 500 with user-friendly message
+   - Logs full traceback for debugging
 
-2. Apply constraints to EfficientFrontier:
-   - Use ef.add_constraint(lambda w: w <= max_weight)
-   - Update all portfolio calculations
+2. Specific error handlers:
+   - ValueError: 400 Bad Request
+   - KeyError: 404 Not Found
+   - yfinance errors: 503 Service Unavailable
+   - Optimization errors: 422 Unprocessable Entity
 
-3. Sector Constraints (Future Enhancement):
-   - Placeholder for sector-based limits
-   - Comment in code for future implementation
+3. Response models for errors:
+   ErrorResponse(detail: str, error_code: str)
+
+4. Logging:
+   - Use Python logging module
+   - Log levels: INFO, WARNING, ERROR
+   - Log to console and file (logs/app.log)
 ```
 
-### Step 5.3: Add Export Functionality
+### Step 5.2: Frontend Error Handling
 
 **Instructions for Claude:**
 ```
-Below the main visualizations, add export options:
+In frontend/js/app.js:
 
-1. Download Portfolio Weights:
-   - Button: "📥 Export Portfolio Allocation (CSV)"
-   - Generate CSV with columns: Ticker, Weight (%), Dollar Amount
-   - Use st.download_button()
+1. Try/catch blocks for all API calls
+2. User-friendly error messages:
+   - Network errors: "Unable to connect to server. Please check your connection."
+   - Invalid tickers: "Some tickers are invalid. Please check: [list]"
+   - Optimization failed: "Portfolio optimization failed. Try different tickers or date range."
 
-2. Performance Summary:
-   - Button: "📄 Download Performance Report (TXT)"
-   - Include: Date, Tickers, Returns, Volatility, Sharpe, Allocations
-   - Formatted as readable text report
+3. Error display:
+   - Use Bootstrap toasts (auto-dismiss after 5 seconds)
+   - Error icon and color coding
+   - "Retry" button for recoverable errors
 
-3. Historical Backtest Data:
-   - Button: "📊 Export Historical Prices (CSV)"
-   - Download the raw price data used in analysis
+4. Fallback UI states:
+   - Empty state: "Select tickers and click Refresh to get started"
+   - Error state: "Something went wrong" with retry button
+   - No data state: "No data available for selected tickers"
+```
+
+### Step 5.3: Performance Optimization
+
+**Instructions for Claude:**
+```
+Backend optimizations:
+
+1. Implement caching at multiple levels:
+   - yfinance data: Supabase cache (24-hour TTL)
+   - Optimization results: Supabase cache (1-hour TTL)
+   - API responses: FastAPI @lru_cache decorator
+
+2. Async endpoints where possible:
+   - async def for I/O operations
+   - Use asyncio.gather() for parallel fetching
+
+3. Response compression:
+   - Enable GZIP middleware
+   - Reduces payload size for large data
+
+Frontend optimizations:
+
+1. Lazy load Plotly.js (only when needed)
+2. Debounce form inputs (prevent excessive API calls)
+3. Local storage for user preferences:
+   - Last used tickers
+   - Investment amount
+   - Date range
+4. Progressive loading:
+   - Show data table first
+   - Load charts after
+```
+
+### Step 5.4: UI Polish
+
+**Instructions for Claude:**
+```
+Final UI improvements:
+
+1. Loading states:
+   - Spinner overlay during API calls
+   - Progress indicators for multi-step operations
+   - Skeleton screens for charts
+
+2. Animations:
+   - Smooth transitions for chart updates
+   - Fade in/out for sections
+   - Button hover effects
+
+3. Accessibility:
+   - ARIA labels for all interactive elements
+   - Keyboard navigation support
+   - High contrast mode support
+
+4. Help & Documentation:
+   - Tooltips for complex terms
+   - "How to Use" modal with examples
+   - Inline help icons with explanations
+
+5. Visual improvements:
+   - Consistent spacing and alignment
+   - Color-coded metrics (green for good, red for bad)
+   - Icons for section headers
+   - Professional color palette
 ```
 
 ### ✅ Phase 5 Completion Checklist:
-- [ ] Risk tolerance slider updates portfolio in real-time
-- [ ] Max allocation constraint works correctly
-- [ ] Toggle shows/hides Min Volatility portfolio
-- [ ] CSV export downloads with correct formatting
-- [ ] Performance report includes all key metrics
-- [ ] All interactions feel instant (no lag)
+- [ ] All errors are caught and handled gracefully
+- [ ] Error messages guide users to solutions
+- [ ] Caching reduces API calls significantly
+- [ ] App feels fast and responsive
+- [ ] Loading states prevent user confusion
+- [ ] UI is polished and professional
+- [ ] Accessibility standards met
+- [ ] Help documentation is clear
 
 **Manager's Anti-Mistake Check:**
-- ✓ Slider changes trigger recalculation (not just visual change)
-- ✓ Constraints are actually applied to optimizer
-- ✓ Export files have proper names with timestamps
-- ✓ Session state prevents unnecessary recalculations
-
----
-
-## 🛡️ PHASE 6: Error Handling & Polish
-**Goal**: Production-ready error handling and user experience refinements
-
-### Step 6.1: Input Validation
-
-**Instructions for Claude:**
-```
-Add comprehensive validation:
-
-1. Ticker Validation:
-   - Minimum 2 tickers required for portfolio optimization
-   - Show error if user selects < 2
-   - Validate ticker format (uppercase, no spaces)
-
-2. Date Validation:
-   - Start date must be before today
-   - Minimum 6 months of data required
-   - Show warning if < 1 year selected
-
-3. Investment Amount Validation:
-   - Must be positive number
-   - Minimum $1,000
-   - Format with commas for readability
-```
-
-### Step 6.2: Graceful Error Handling
-
-**Instructions for Claude:**
-```
-Wrap critical sections in try/except:
-
-1. Data Download Failures:
-   - Catch yfinance errors
-   - Display user-friendly message
-   - Suggest: "Check ticker symbols or try again later"
-
-2. Optimization Failures:
-   - Catch pypfopt errors (e.g., singular matrix)
-   - Explain: "Portfolio optimization failed - try different tickers"
-   - Log technical error details in expander
-
-3. Network Issues:
-   - Timeout handling for yfinance
-   - Retry logic with exponential backoff
-   - Show loading spinner during retries
-```
-
-### Step 6.3: User Experience Enhancements
-
-**Instructions for Claude:**
-```
-Polish the interface:
-
-1. Loading States:
-   - Use st.spinner() for data download
-   - Messages: "Fetching market data..." "Optimizing portfolio..."
-
-2. Help & Documentation:
-   - Add "ℹ️ How to Use" expander at top
-   - Explain what Efficient Frontier means
-   - Define Sharpe Ratio in plain language
-
-3. Visual Improvements:
-   - Add dividers between sections (st.divider())
-   - Use colored metrics (delta parameter in st.metric)
-   - Consistent emoji usage for section headers
-
-4. Performance Indicators:
-   - Show cache hit status
-   - Display last data refresh time
-   - Add "Using cached data" info message
-```
-
-### ✅ Phase 6 Completion Checklist:
-- [ ] App handles invalid tickers gracefully
-- [ ] Network errors don't crash the app
-- [ ] All error messages are user-friendly
-- [ ] Loading spinners appear during calculations
-- [ ] Help text explains complex concepts
-- [ ] UI feels polished and professional
-
-**Manager's Anti-Mistake Check:**
-- ✓ No stack traces shown to users
-- ✓ All errors have actionable guidance
-- ✓ Loading states prevent user confusion
-- ✓ Help text uses plain language (no jargon)
+- ✓ No stack traces visible to users
+- ✓ Cache invalidation works correctly
+- ✓ Async operations don't block UI
+- ✓ All error paths tested
 
 ---
 
@@ -500,71 +851,121 @@ Polish the interface:
 
 ### Code Quality
 - [ ] All functions have docstrings
-- [ ] No hardcoded values (use constants or config)
+- [ ] No hardcoded values (use .env for config)
 - [ ] Proper spacing and PEP 8 compliance
 - [ ] Comments explain "why" not "what"
+- [ ] TypeScript types/JSDoc for frontend (optional but recommended)
 
 ### Functionality
 - [ ] All 5 phases implemented and tested
-- [ ] App runs without errors on fresh install
+- [ ] Backend runs without errors: `uvicorn backend.main:app --reload`
+- [ ] Frontend connects to backend successfully
 - [ ] Portfolio calculations are mathematically correct
 - [ ] Visualizations are accurate and clear
+- [ ] Supabase caching works
 
 ### User Experience
-- [ ] App loads in < 3 seconds (first run)
+- [ ] App loads in < 3 seconds
 - [ ] Cached interactions feel instant
 - [ ] All buttons and inputs work as expected
-- [ ] Mobile-responsive (test in narrow window)
+- [ ] Mobile-responsive design
+- [ ] Error states are handled gracefully
 
 ### Documentation
 - [ ] README.md with installation instructions
-- [ ] requirements.txt with pinned versions
+- [ ] .env.example with required variables
+- [ ] API documentation (auto-generated by FastAPI)
 - [ ] Inline comments for complex logic
-- [ ] User guide in "How to Use" section
+- [ ] User guide in frontend help section
+
+### Security
+- [ ] Environment variables not committed to git
+- [ ] CORS properly configured
+- [ ] No sensitive data exposed in frontend
+- [ ] Supabase RLS policies (if using auth)
 
 ---
 
 ## 📚 Quick Reference
 
-### Run the App
+### Start Backend Server
 ```bash
-streamlit run app.py
+cd backend
+source ../venv/bin/activate
+uvicorn main:app --reload --host 0.0.0.0 --port 8000
 ```
 
-### Install Dependencies
+### Start Frontend (Simple HTTP Server)
 ```bash
-pip install -r requirements.txt
+cd frontend
+python -m http.server 3000
+```
+Or open `index.html` directly in browser (file://)
+
+### API Documentation
+- Swagger UI: http://localhost:8000/docs
+- ReDoc: http://localhost:8000/redoc
+
+### Environment Variables (.env)
+```
+SUPABASE_URL=https://xxxxx.supabase.co
+SUPABASE_KEY=your-service-role-key-here
+ENVIRONMENT=development
+LOG_LEVEL=INFO
 ```
 
 ### Key Libraries Documentation
-- **Streamlit**: https://docs.streamlit.io
+- **FastAPI**: https://fastapi.tiangolo.com
 - **yfinance**: https://pypi.org/project/yfinance/
 - **PyPortfolioOpt**: https://pyportfolioopt.readthedocs.io
-- **Plotly**: https://plotly.com/python/
+- **Plotly.js**: https://plotly.com/javascript/
+- **Supabase**: https://supabase.com/docs
+- **Bootstrap 5**: https://getbootstrap.com/docs/5.0
 
 ### Troubleshooting
 | Issue | Solution |
 |-------|----------|
-| Rate limit errors | Check cache TTL, reduce refresh frequency |
-| Singular matrix error | Remove correlated tickers, add more diverse assets |
-| Slow performance | Verify caching is enabled, reduce num_portfolios |
-| Missing data | Check ticker symbols, verify date range |
+| CORS errors | Check CORS middleware in main.py, verify frontend origin |
+| API timeout | Increase uvicorn timeout, check network connection |
+| Supabase connection failed | Verify .env credentials, check Supabase project status |
+| Charts not rendering | Check Plotly.js CDN loaded, inspect browser console |
+| Optimization fails | Verify tickers are valid, check date range has enough data |
 
 ---
 
 ## 🎯 Success Criteria
 
 **The CFO's Cockpit is complete when:**
-1. ✅ A non-technical user can select tickers and see optimal portfolios
-2. ✅ The Efficient Frontier visualizes correctly with clear markers
-3. ✅ Dollar allocations match user's investment amount
-4. ✅ The app feels responsive (< 1 second for cached interactions)
-5. ✅ Export functions provide usable CSV/TXT files
-6. ✅ Error messages guide users to solutions
-7. ✅ The math passes validation (Sharpe ratios are realistic, weights sum to 100%)
+1. ✅ Backend API serves all endpoints correctly (test in Swagger UI)
+2. ✅ Frontend connects to backend without CORS issues
+3. ✅ User can select tickers and see optimal portfolios
+4. ✅ Efficient Frontier visualizes correctly with clear markers
+5. ✅ Dollar allocations match user's investment amount
+6. ✅ Supabase caching reduces redundant API calls
+7. ✅ Export functions provide usable CSV/TXT files
+8. ✅ Error messages guide users to solutions
+9. ✅ The app feels responsive (< 1 second for cached data)
+10. ✅ Math is correct (Sharpe ratios realistic, weights sum to 100%)
 
 ---
 
-**Master Roadmap Version**: 1.0
+## 🔄 Migration from Streamlit (Optional)
+
+If you have existing Streamlit code, here's the mapping:
+
+| Streamlit | FastAPI + Frontend Equivalent |
+|-----------|-------------------------------|
+| `st.title()` | `<h1>` in HTML |
+| `st.sidebar` | Sidebar div in HTML |
+| `st.button()` | `<button>` + event listener |
+| `st.plotly_chart()` | `Plotly.newPlot()` in JS |
+| `st.cache_data` | Supabase cache + backend caching |
+| `st.multiselect()` | `<select multiple>` or Select2 |
+| `st.number_input()` | `<input type="number">` |
+| `st.date_input()` | `<input type="date">` |
+
+---
+
+**Master Roadmap Version**: 2.0 (FastAPI Architecture)
 **Last Updated**: 2025-12-07
 **Ready for Execution**: YES ✅

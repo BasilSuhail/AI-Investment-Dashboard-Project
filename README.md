@@ -14,6 +14,8 @@ source venv/bin/activate
 streamlit run app.py
 ```
 
+**Note**: This project uses Python 3.11 (not 3.14) for compatibility with all dependencies.
+
 The app will open automatically in your browser at `http://localhost:8501`
 
 ## What You'll See
