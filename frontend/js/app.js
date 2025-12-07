@@ -4,7 +4,8 @@
  */
 
 // DOM Elements
-let tickersInput, investmentAmount, startDate, refreshBtn;
+let tickersInput, investmentAmount, startDate, refreshBtn, exportBtn, riskTolerance, maxWeight;
+let currentPortfolioData = null; // Store portfolio data for export
 
 // Initialize app when DOM is ready
 document.addEventListener('DOMContentLoaded', function() {
@@ -13,6 +14,9 @@ document.addEventListener('DOMContentLoaded', function() {
     investmentAmount = document.getElementById('investmentAmount');
     startDate = document.getElementById('startDate');
     refreshBtn = document.getElementById('refreshBtn');
+    exportBtn = document.getElementById('exportBtn');
+    riskTolerance = document.getElementById('riskTolerance');
+    maxWeight = document.getElementById('maxWeight');
 
     // Set default start date (1 year ago)
     const oneYearAgo = new Date();
@@ -21,12 +25,36 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Attach event listeners
     refreshBtn.addEventListener('click', handleRefresh);
+    exportBtn.addEventListener('click', exportPortfolio);
+
+    // Time period quick buttons
+    document.querySelectorAll('.time-period').forEach(btn => {
+        btn.addEventListener('click', function() {
+            document.querySelectorAll('.time-period').forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+            setTimePeriod(parseInt(this.dataset.period));
+        });
+    });
+
+    // Max weight slider
+    maxWeight.addEventListener('input', function() {
+        document.getElementById('maxWeightValue').textContent = this.value + '%';
+    });
 
     // Load user preferences from localStorage
     loadUserPreferences();
 
     console.log('CFO\'s Cockpit initialized successfully');
 });
+
+/**
+ * Set time period based on months
+ */
+function setTimePeriod(months) {
+    const date = new Date();
+    date.setMonth(date.getMonth() - months);
+    startDate.value = date.toISOString().split('T')[0];
+}
 
 /**
  * Handle refresh button click
@@ -41,13 +69,23 @@ async function handleRefresh() {
         // Get selected tickers
         const selectedTickers = Array.from(tickersInput.selectedOptions).map(option => option.value);
 
+        // Determine optimization type based on risk tolerance
+        let optimizationType = 'max_sharpe';
+        if (riskTolerance.value === 'conservative') {
+            optimizationType = 'min_volatility';
+        } else if (riskTolerance.value === 'aggressive') {
+            optimizationType = 'max_sharpe';
+        } else {
+            optimizationType = 'max_sharpe'; // Moderate also uses max sharpe
+        }
+
         // Get form values
         const requestBody = {
             tickers: selectedTickers,
             start_date: startDate.value,
             investment_amount: parseFloat(investmentAmount.value),
-            optimization_type: 'max_sharpe',
-            max_weight: 1.0
+            optimization_type: optimizationType,
+            max_weight: parseFloat(maxWeight.value) / 100
         };
 
         // Show loading state
@@ -69,18 +107,38 @@ async function handleRefresh() {
         // Render market data table
         renderMarketDataTable(stockData);
 
+        // Calculate best/worst performers
+        renderPerformanceCards(stockData);
+
+        // Render normalized price chart
+        renderNormalizedPrices(stockData);
+
         // Step 2: Get efficient frontier data
         console.log('Calculating efficient frontier...');
         const frontierData = await getEfficientFrontier(requestBody);
         console.log('Efficient frontier calculated:', frontierData);
 
+        // Store data for export
+        currentPortfolioData = {
+            stockData: stockData,
+            frontierData: frontierData,
+            requestBody: requestBody
+        };
+
+        // Enable export button
+        exportBtn.disabled = false;
+
+        // Determine which portfolio to display based on risk tolerance
+        const selectedPortfolio = riskTolerance.value === 'conservative'
+            ? frontierData.optimal_portfolios.min_volatility
+            : frontierData.optimal_portfolios.max_sharpe;
+
         // Render charts
         renderEfficientFrontier(frontierData);
-        renderAllocationChart(
-            frontierData.optimal_portfolios.max_sharpe.weights,
-            frontierData.optimal_portfolios.max_sharpe.allocations
-        );
-        renderMetricsCards(frontierData.optimal_portfolios.max_sharpe.performance);
+        renderAllocationChart(selectedPortfolio.weights, selectedPortfolio.allocations);
+        renderMetricsCards(selectedPortfolio.performance);
+        renderBacktestChart(stockData, selectedPortfolio.weights, parseFloat(investmentAmount.value));
+        renderCorrelationHeatmap(stockData);
 
         // Hide loading state
         hideLoadingState();

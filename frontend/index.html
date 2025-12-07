@@ -59,15 +59,53 @@
                             <input type="number" class="form-control" id="investmentAmount" value="100000" min="1000" step="5000">
                         </div>
 
-                        <!-- Start Date -->
+                        <!-- Time Period Selector -->
                         <div class="mb-3">
-                            <label for="startDate" class="form-label">Start Date</label>
+                            <label class="form-label">Quick Time Period</label>
+                            <div class="btn-group w-100 mb-2" role="group">
+                                <button type="button" class="btn btn-outline-secondary btn-sm time-period" data-period="1">1M</button>
+                                <button type="button" class="btn btn-outline-secondary btn-sm time-period" data-period="3">3M</button>
+                                <button type="button" class="btn btn-outline-secondary btn-sm time-period" data-period="6">6M</button>
+                                <button type="button" class="btn btn-outline-secondary btn-sm time-period active" data-period="12">1Y</button>
+                            </div>
+                            <div class="btn-group w-100" role="group">
+                                <button type="button" class="btn btn-outline-secondary btn-sm time-period" data-period="24">2Y</button>
+                                <button type="button" class="btn btn-outline-secondary btn-sm time-period" data-period="60">5Y</button>
+                                <button type="button" class="btn btn-outline-secondary btn-sm time-period" data-period="120">10Y</button>
+                            </div>
+                        </div>
+
+                        <!-- Start Date (Custom) -->
+                        <div class="mb-3">
+                            <label for="startDate" class="form-label">Or Custom Start Date</label>
                             <input type="date" class="form-control" id="startDate">
+                        </div>
+
+                        <!-- Risk Tolerance -->
+                        <div class="mb-3">
+                            <label for="riskTolerance" class="form-label">Risk Tolerance</label>
+                            <select class="form-select" id="riskTolerance">
+                                <option value="conservative">Conservative (Min Risk)</option>
+                                <option value="moderate" selected>Moderate (Balanced)</option>
+                                <option value="aggressive">Aggressive (Max Return)</option>
+                            </select>
+                        </div>
+
+                        <!-- Max Weight Constraint -->
+                        <div class="mb-3">
+                            <label for="maxWeight" class="form-label">Max Weight per Stock: <span id="maxWeightValue">100%</span></label>
+                            <input type="range" class="form-range" id="maxWeight" min="10" max="100" value="100" step="5">
+                            <small class="text-muted">Limit maximum allocation to any single stock</small>
                         </div>
 
                         <!-- Refresh Button -->
                         <button id="refreshBtn" class="btn btn-success w-100 mb-3">
                             🔄 Refresh Data
+                        </button>
+
+                        <!-- Export Button -->
+                        <button id="exportBtn" class="btn btn-outline-primary w-100 mb-3" disabled>
+                            📥 Export Portfolio (CSV)
                         </button>
 
                         <!-- Help Section -->
@@ -114,6 +152,57 @@
 
                 <!-- Alert Container -->
                 <div id="alertContainer"></div>
+
+                <!-- Performance Summary Cards -->
+                <div class="row mb-4">
+                    <div class="col-md-4">
+                        <div class="card text-center">
+                            <div class="card-body">
+                                <h6 class="text-muted mb-1">📈 Best Performer</h6>
+                                <h4 id="bestPerformer" class="mb-0 text-success">--</h4>
+                                <small id="bestPerformerGain" class="text-muted">--</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card text-center">
+                            <div class="card-body">
+                                <h6 class="text-muted mb-1">📊 Portfolio Return</h6>
+                                <h4 id="portfolioReturn" class="mb-0">--</h4>
+                                <small class="text-muted">Optimized allocation</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card text-center">
+                            <div class="card-body">
+                                <h6 class="text-muted mb-1">📉 Worst Performer</h6>
+                                <h4 id="worstPerformer" class="mb-0 text-danger">--</h4>
+                                <small id="worstPerformerLoss" class="text-muted">--</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Normalized Price Chart -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">📊 Normalized Price Performance</h5>
+                    </div>
+                    <div class="card-body">
+                        <div id="normalizedPriceChart" class="chart-container"></div>
+                    </div>
+                </div>
+
+                <!-- Historical Backtest Chart -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">💰 Portfolio Growth Backtest</h5>
+                    </div>
+                    <div class="card-body">
+                        <div id="backtestChart" class="chart-container"></div>
+                    </div>
+                </div>
 
                 <!-- Efficient Frontier Chart -->
                 <div class="card mb-4">
@@ -167,6 +256,16 @@
                                 </div>
                             </div>
                         </div>
+                    </div>
+                </div>
+
+                <!-- Correlation Heatmap -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">🔗 Stock Correlation Matrix</h5>
+                    </div>
+                    <div class="card-body">
+                        <div id="correlationHeatmap" class="chart-container"></div>
                     </div>
                 </div>
 
