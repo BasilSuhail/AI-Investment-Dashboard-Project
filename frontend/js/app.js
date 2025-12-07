@@ -306,3 +306,99 @@ function formatCurrency(amount) {
 function formatPercentage(value, decimals = 2) {
     return (value * 100).toFixed(decimals) + '%';
 }
+
+/**
+ * Export portfolio to CSV
+ */
+function exportPortfolio() {
+    if (!currentPortfolioData) {
+        displayAlert('No portfolio data to export. Please optimize first.', 'warning');
+        return;
+    }
+
+    const portfolio = riskTolerance.value === 'conservative'
+        ? currentPortfolioData.frontierData.optimal_portfolios.min_volatility
+        : currentPortfolioData.frontierData.optimal_portfolios.max_sharpe;
+
+    // Build CSV content
+    let csv = 'Portfolio Optimization Report\n';
+    csv += `Generated: ${new Date().toLocaleString()}\n`;
+    csv += `Investment Amount: ${formatCurrency(currentPortfolioData.requestBody.investment_amount)}\n`;
+    csv += `Risk Profile: ${riskTolerance.value.toUpperCase()}\n`;
+    csv += `Time Period: ${currentPortfolioData.requestBody.start_date} to ${new Date().toISOString().split('T')[0]}\n\n`;
+
+    csv += 'Performance Metrics\n';
+    csv += `Expected Annual Return,${formatPercentage(portfolio.performance.expected_return)}\n`;
+    csv += `Annual Volatility,${formatPercentage(portfolio.performance.volatility)}\n`;
+    csv += `Sharpe Ratio,${portfolio.performance.sharpe_ratio.toFixed(2)}\n\n`;
+
+    csv += 'Ticker,Weight,Dollar Allocation\n';
+    for (const [ticker, weight] of Object.entries(portfolio.weights)) {
+        const allocation = portfolio.allocations[ticker];
+        csv += `${ticker},${formatPercentage(weight)},${formatCurrency(allocation)}\n`;
+    }
+
+    // Download CSV file
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `portfolio_${riskTolerance.value}_${new Date().toISOString().split('T')[0]}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    window.URL.revokeObjectURL(url);
+
+    displayAlert('Portfolio exported successfully!', 'success');
+}
+
+/**
+ * Render performance summary cards
+ */
+function renderPerformanceCards(stockData) {
+    if (!stockData || !stockData.tickers || stockData.tickers.length === 0) {
+        return;
+    }
+
+    const tickers = stockData.tickers;
+    const prices = stockData.prices;
+    const returns = {};
+
+    // Calculate returns for each ticker
+    for (const ticker of tickers) {
+        const priceData = prices[ticker];
+        if (priceData && priceData.length > 0) {
+            const startPrice = priceData[0];
+            const endPrice = priceData[priceData.length - 1];
+            returns[ticker] = ((endPrice - startPrice) / startPrice);
+        }
+    }
+
+    // Find best and worst performers
+    let bestTicker = null;
+    let bestReturn = -Infinity;
+    let worstTicker = null;
+    let worstReturn = Infinity;
+
+    for (const [ticker, returnVal] of Object.entries(returns)) {
+        if (returnVal > bestReturn) {
+            bestReturn = returnVal;
+            bestTicker = ticker;
+        }
+        if (returnVal < worstReturn) {
+            worstReturn = returnVal;
+            worstTicker = ticker;
+        }
+    }
+
+    // Update DOM
+    document.getElementById('bestPerformer').textContent = bestTicker || '--';
+    document.getElementById('bestPerformerGain').textContent = bestTicker
+        ? `+${formatPercentage(bestReturn)}`
+        : '--';
+
+    document.getElementById('worstPerformer').textContent = worstTicker || '--';
+    document.getElementById('worstPerformerLoss').textContent = worstTicker
+        ? `${formatPercentage(worstReturn)}`
+        : '--';
+}
