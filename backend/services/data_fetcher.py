@@ -43,16 +43,19 @@ def fetch_stock_data(tickers: list, start_date: str, end_date: str = None):
             # Multiple tickers
             prices = data['Adj Close']
 
-        # Data cleaning - remove tickers with missing data
-        initial_cols = len(prices.columns)
-        prices = prices.dropna(axis=1)
-        removed_cols = initial_cols - len(prices.columns)
-
-        if removed_cols > 0:
-            print(f"⚠️ Removed {removed_cols} ticker(s) due to missing data")
-
-        if prices.empty:
+        # Handle empty data
+        if prices.empty or len(prices) == 0:
             raise ValueError("No valid data available for the selected tickers and date range")
+
+        # Data cleaning - forward fill then drop remaining NaN rows
+        prices = prices.fillna(method='ffill')
+        prices = prices.dropna()
+
+        # Check if we still have data after cleaning
+        if prices.empty or len(prices) == 0:
+            raise ValueError("No valid data available for the selected tickers and date range")
+
+        print(f"✅ Successfully fetched {len(prices)} days of data for {len(prices.columns)} ticker(s)")
 
         return prices
 
