@@ -221,6 +221,7 @@ async function optimizePortfolio() {
         }
         const investmentAmount = parseFloat(document.getElementById('investmentAmount').value) || 100000;
         const riskTolerance = document.getElementById('riskTolerance').value;
+        const compareSP500 = document.getElementById('compareSP500').checked;
 
         let optimizationType = 'max_sharpe';
         if (riskTolerance === 'conservative') {
@@ -239,7 +240,8 @@ async function optimizePortfolio() {
             start_date: startDateStr,
             investment_amount: investmentAmount,
             optimization_type: optimizationType,
-            max_weight: 1.0
+            max_weight: 1.0,
+            compare_sp500: compareSP500
         };
 
         const frontierData = await getEfficientFrontier(requestBody);
@@ -249,15 +251,26 @@ async function optimizePortfolio() {
         currentData = {
             stockData,
             frontierData,
-            requestBody
+            requestBody,
+            spyData
         };
 
         // Render metrics
         renderMetrics(stockData, frontierData, optimizationType);
 
+        // Fetch SPY data if comparison is enabled
+        let spyData = null;
+        if (compareSP500) {
+            try {
+                spyData = await fetchStockData(['SPY'], startDateStr);
+            } catch (e) {
+                console.warn('Failed to fetch SPY data:', e);
+            }
+        }
+
         // Render charts
         renderNormalizedPrices(stockData);
-        renderBacktestChart(stockData, frontierData, optimizationType, investmentAmount);
+        renderBacktestChart(stockData, frontierData, optimizationType, investmentAmount, spyData);
         renderEfficientFrontier(frontierData);
         renderAllocationChart(frontierData, optimizationType);
         renderCorrelationHeatmap(stockData);
@@ -326,6 +339,27 @@ function renderMetrics(stockData, frontierData, optimizationType) {
 
     document.getElementById('sharpeRatio').textContent =
         portfolio.performance.sharpe_ratio.toFixed(2);
+
+    // Show S&P 500 comparison if available
+    if (frontierData.benchmark) {
+        const sp500Card = document.getElementById('sp500Card');
+        const sp500Comparison = document.getElementById('sp500Comparison');
+
+        sp500Card.style.display = 'block';
+
+        const outperformance = frontierData.benchmark.outperformance;
+        const outperformancePercent = (outperformance * 100).toFixed(2);
+
+        if (outperformance > 0) {
+            sp500Comparison.textContent = `+${outperformancePercent}%`;
+            sp500Comparison.className = 'metric-value positive';
+        } else {
+            sp500Comparison.textContent = `${outperformancePercent}%`;
+            sp500Comparison.className = 'metric-value negative';
+        }
+    } else {
+        document.getElementById('sp500Card').style.display = 'none';
+    }
 }
 
 /**
@@ -359,7 +393,7 @@ function initializeThemeToggle() {
         if (currentData) {
             renderNormalizedPrices(currentData.stockData);
             renderBacktestChart(currentData.stockData, currentData.frontierData,
-                currentData.requestBody.optimization_type, currentData.requestBody.investment_amount);
+                currentData.requestBody.optimization_type, currentData.requestBody.investment_amount, currentData.spyData);
             renderEfficientFrontier(currentData.frontierData);
             renderAllocationChart(currentData.frontierData, currentData.requestBody.optimization_type);
             renderCorrelationHeatmap(currentData.stockData);

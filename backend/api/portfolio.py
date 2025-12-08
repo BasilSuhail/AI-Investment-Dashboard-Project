@@ -177,6 +177,43 @@ async def get_efficient_frontier_endpoint(request: OptimizationRequest):
         )
         min_vol_allocations = calculate_dollar_allocations(min_vol_weights, request.investment_amount)
 
+        # Calculate S&P 500 benchmark if requested
+        benchmark_data = None
+        if request.compare_sp500:
+            try:
+                # Fetch SPY data for the same period
+                spy_data = fetch_stock_data(['SPY'], request.start_date)
+
+                if not spy_data.empty and 'SPY' in spy_data.columns:
+                    # Calculate SPY returns
+                    spy_prices = spy_data['SPY']
+                    spy_total_return = (spy_prices.iloc[-1] - spy_prices.iloc[0]) / spy_prices.iloc[0]
+
+                    # Calculate annualized return
+                    days = len(spy_prices)
+                    years = days / 252  # Trading days per year
+                    spy_annualized_return = (1 + spy_total_return) ** (1 / years) - 1 if years > 0 else spy_total_return
+
+                    # Calculate SPY volatility
+                    spy_returns = spy_prices.pct_change().dropna()
+                    spy_volatility = spy_returns.std() * (252 ** 0.5)  # Annualized volatility
+
+                    # Get portfolio return based on optimization type
+                    portfolio_return = max_sharpe_perf['expected_return'] if request.optimization_type != 'min_volatility' else min_vol_perf['expected_return']
+
+                    # Calculate outperformance
+                    outperformance = portfolio_return - spy_annualized_return
+
+                    benchmark_data = BenchmarkPerformance(
+                        total_return=spy_total_return,
+                        annualized_return=spy_annualized_return,
+                        volatility=spy_volatility,
+                        outperformance=outperformance
+                    )
+            except Exception as e:
+                # If SPY fetch fails, continue without benchmark
+                print(f"Warning: Failed to fetch SPY benchmark data: {e}")
+
         return EfficientFrontierResponse(
             simulated_portfolios=SimulatedPortfolios(
                 returns=sim_returns,
@@ -194,7 +231,8 @@ async def get_efficient_frontier_endpoint(request: OptimizationRequest):
                     performance=PerformanceMetrics(**min_vol_perf),
                     allocations=min_vol_allocations
                 )
-            )
+            ),
+            benchmark=benchmark_data
         )
 
     except HTTPException:

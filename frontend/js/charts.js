@@ -291,8 +291,9 @@ function renderNormalizedPrices(stockData) {
  * @param {Object} frontierData - Frontier data
  * @param {string} optimizationType - Type of optimization
  * @param {number} initialInvestment - Starting investment amount
+ * @param {Object} spyData - S&P 500 benchmark data (optional)
  */
-function renderBacktestChart(stockData, frontierData, optimizationType, initialInvestment) {
+function renderBacktestChart(stockData, frontierData, optimizationType, initialInvestment, spyData = null) {
     if (!stockData || !stockData.dates || stockData.dates.length === 0) {
         return;
     }
@@ -322,24 +323,85 @@ function renderBacktestChart(stockData, frontierData, optimizationType, initialI
         portfolioValues.push(portfolioValue);
     }
 
-    const trace = {
+    const traces = [{
         x: stockData.dates,
         y: portfolioValues,
         mode: 'lines',
-        name: 'Portfolio Value',
+        name: 'Your Portfolio',
         type: 'scatter',
         fill: 'tozeroy',
         line: {
             color: 'rgb(46, 125, 50)',
-            width: 2
+            width: 3
         },
         hovertemplate: '<b>Portfolio Value</b><br>$%{y:,.2f}<extra></extra>'
-    };
+    }];
 
     const finalValue = portfolioValues[portfolioValues.length - 1];
     const totalReturn = ((finalValue - initialInvestment) / initialInvestment * 100);
 
+    // Add S&P 500 benchmark if data is available
+    let spyReturn = null;
+    if (spyData && spyData.prices && spyData.prices['SPY'] && spyData.dates) {
+        const spyPrices = spyData.prices['SPY'];
+        const spyValues = [];
+
+        for (let i = 0; i < spyData.dates.length; i++) {
+            const startPrice = spyPrices[0];
+            const currentPrice = spyPrices[i];
+            const priceRatio = currentPrice / startPrice;
+            spyValues.push(initialInvestment * priceRatio);
+        }
+
+        const spyFinalValue = spyValues[spyValues.length - 1];
+        spyReturn = ((spyFinalValue - initialInvestment) / initialInvestment * 100);
+
+        traces.push({
+            x: spyData.dates,
+            y: spyValues,
+            mode: 'lines',
+            name: 'S&P 500',
+            type: 'scatter',
+            line: {
+                color: 'rgb(59, 130, 246)',
+                width: 2,
+                dash: 'dot'
+            },
+            hovertemplate: '<b>S&P 500 Value</b><br>$%{y:,.2f}<extra></extra>'
+        });
+    }
+
     const themeColors = getThemeColors();
+    const annotations = [];
+
+    // Portfolio return annotation
+    annotations.push({
+        text: `Portfolio: ${totalReturn >= 0 ? '+' : ''}${totalReturn.toFixed(2)}%`,
+        xref: 'paper',
+        yref: 'paper',
+        x: 0.3,
+        y: 1.05,
+        xanchor: 'center',
+        yanchor: 'bottom',
+        showarrow: false,
+        font: { size: 14, color: totalReturn >= 0 ? '#10b981' : '#ef4444' }
+    });
+
+    // S&P 500 return annotation
+    if (spyReturn !== null) {
+        annotations.push({
+            text: `S&P 500: ${spyReturn >= 0 ? '+' : ''}${spyReturn.toFixed(2)}%`,
+            xref: 'paper',
+            yref: 'paper',
+            x: 0.7,
+            y: 1.05,
+            xanchor: 'center',
+            yanchor: 'bottom',
+            showarrow: false,
+            font: { size: 14, color: 'rgb(59, 130, 246)' }
+        });
+    }
+
     const layout = {
         xaxis: {
             title: 'Date',
@@ -357,18 +419,14 @@ function renderBacktestChart(stockData, frontierData, optimizationType, initialI
         hovermode: 'x',
         height: 400,
         margin: { l: 70, r: 20, t: 20, b: 60 },
-        showlegend: false,
-        annotations: [{
-            text: `Total Return: ${totalReturn >= 0 ? '+' : ''}${totalReturn.toFixed(2)}%`,
-            xref: 'paper',
-            yref: 'paper',
-            x: 0.5,
-            y: 1.05,
-            xanchor: 'center',
-            yanchor: 'bottom',
-            showarrow: false,
-            font: { size: 14, color: totalReturn >= 0 ? '#10b981' : '#ef4444' }
-        }]
+        showlegend: spyData !== null,
+        legend: {
+            x: 0.01,
+            y: 0.99,
+            bgcolor: 'rgba(0, 0, 0, 0.3)',
+            font: themeColors.font
+        },
+        annotations: annotations
     };
 
     const config = {
@@ -377,7 +435,7 @@ function renderBacktestChart(stockData, frontierData, optimizationType, initialI
         displaylogo: false
     };
 
-    Plotly.newPlot('portfolioChart', [trace], layout, config);
+    Plotly.newPlot('portfolioChart', traces, layout, config);
 }
 
 /**
