@@ -167,13 +167,10 @@ function updateDropdownCheckboxes() {
  * Initialize controls
  */
 function initializeControls() {
-    // Time horizon buttons
-    document.querySelectorAll('.pill-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-            document.querySelectorAll('.pill-btn').forEach(b => b.classList.remove('pill-btn-active'));
-            btn.classList.add('pill-btn-active');
-            selectedMonths = parseInt(btn.dataset.months);
-        });
+    // Time horizon dropdown
+    const timeHorizon = document.getElementById('timeHorizon');
+    timeHorizon.addEventListener('change', () => {
+        selectedMonths = parseInt(timeHorizon.value);
     });
 
     // Optimize button
