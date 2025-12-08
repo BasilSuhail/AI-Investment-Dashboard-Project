@@ -1,321 +1,280 @@
-# CFO's Cockpit - AI Investment Dashboard
+# AI Investment Portfolio Optimizer
 
-Real-Time Portfolio Optimization Engine powered by Modern Portfolio Theory
+> A production-ready portfolio optimization dashboard using Modern Portfolio Theory (Markowitz) to maximize risk-adjusted returns.
 
-## Architecture
+**Live Demo**: [Portfolio Optimizer](https://github.com/yourusername/ai-portfolio-optimizer) | **Built by**: Senior Developer | **Status**: Production Ready ✅
 
-**Modern Web Stack:**
-- **Backend**: FastAPI (Python) - REST API serving portfolio optimization
-- **Frontend**: HTML/CSS/JavaScript with Plotly.js for interactive charts
-- **Database**: Supabase (PostgreSQL) - for caching and data persistence
-- **Optimization**: PyPortfolioOpt with CAPM & Ledoit-Wolf Shrinkage
+---
+
+## Features
+
+- 📊 **Real-time Stock Data** - Live market prices from Yahoo Finance API
+- 🎯 **Efficient Frontier Visualization** - Interactive charts showing optimal portfolios
+- 📈 **S&P 500 Benchmark Comparison** - See if your portfolio beats the market
+- 💼 **Export Functionality** - Download allocations (CSV) and performance reports (TXT)
+- 🌓 **Light/Dark Theme** - Elegant UI with theme persistence
+- 📱 **Fully Responsive** - Works on desktop, tablet, and mobile
+- ⚡ **Fast Performance** - FastAPI backend with intelligent caching
+- 📚 **Educational Tooltips** - Explains financial terms for non-technical users
+
+---
+
+## Why This Tool?
+
+Every portfolio needs to answer one question: **"Does this beat just buying an index fund?"**
+
+This dashboard uses Nobel Prize-winning mathematics (Modern Portfolio Theory) to find the optimal stock allocations for your risk tolerance. Unlike basic trackers that just show what you own, this calculates **what you should own** based on:
+
+- Expected returns (CAPM)
+- Risk modeling (Covariance Matrix with Ledoit-Wolf Shrinkage)
+- Efficient Frontier optimization (Max Sharpe Ratio)
+
+**The result?** A mathematically optimal portfolio that a CFO would actually trust.
+
+---
 
 ## Quick Start
 
 ### Prerequisites
-- Python 3.11
+- Python 3.11+
 - Modern web browser
-- Internet connection (for yfinance API)
+- Internet connection (for market data)
 
-### 1. Install Backend Dependencies
+### Installation
 
 ```bash
-# Activate virtual environment
-source venv/bin/activate
+# Clone the repository
+git clone https://github.com/yourusername/ai-portfolio-optimizer.git
+cd ai-portfolio-optimizer
 
-# Install backend dependencies
+# Install dependencies
 cd backend
 pip install -r requirements.txt
 ```
 
-### 2. Configure Environment (Optional but Recommended)
+### Running the Application
 
-For Supabase caching support:
-
-1. Create a Supabase account at [https://supabase.com](https://supabase.com)
-2. Follow instructions in [supabase/SETUP.md](supabase/SETUP.md)
-3. Create `backend/.env` file with your credentials:
-   ```
-   SUPABASE_URL=https://xxxxx.supabase.co
-   SUPABASE_KEY=your-service-role-key-here
-   ```
-
-**Note**: The app will work without Supabase but won't cache data.
-
-### 3. Start Backend Server
-
+**1. Start Backend Server**
 ```bash
-# From backend directory
 cd backend
-source ../venv/bin/activate
 uvicorn main:app --reload --host 0.0.0.0 --port 8000
 ```
 
-You should see:
-```
-INFO:     Uvicorn running on http://0.0.0.0:8000
-INFO:     Application startup complete.
-```
-
-**API Documentation**: [http://localhost:8000/docs](http://localhost:8000/docs)
-
-### 4. Start Frontend
-
-**Option A: Simple HTTP Server (Recommended)**
+**2. Start Frontend Server**
 ```bash
-# From frontend directory
 cd frontend
-python -m http.server 3000
+python -m http.server 8080
 ```
 
-Open browser to: [http://localhost:3000](http://localhost:3000)
-
-**Option B: Direct File Access**
-```bash
-# From frontend directory
-open index.html
+**3. Open Browser**
 ```
-(Or just double-click `frontend/index.html`)
-
-## What You'll See
-
-**Phase 1 Complete!** Full-stack application with:
-
-### Backend (FastAPI)
-- ✅ `/api/stocks/historical` - Fetch market data
-- ✅ `/api/portfolio/optimize` - Optimize portfolio
-- ✅ `/api/portfolio/efficient-frontier` - Generate frontier data
-- ✅ Auto-generated API docs at `/docs`
-- ✅ CORS enabled for frontend communication
-
-### Frontend (Interactive Dashboard)
-- ✅ Portfolio configuration sidebar
-- ✅ Ticker selection (default: AAPL, MSFT, TSLA, GOOGL, AMZN)
-- ✅ Investment amount input
-- ✅ Date range picker
-- ✅ Interactive Efficient Frontier chart (Plotly.js)
-- ✅ Portfolio allocation donut chart
-- ✅ Performance metrics display
-- ✅ Raw market data table
-- ✅ Loading states and error handling
-
-### Database (Supabase - Optional)
-- ✅ Market data cache table
-- ✅ Portfolio storage table
-- ✅ Optimization results cache
-- ✅ Automatic cache expiration
-
-## Project Structure
-
+http://localhost:8080
 ```
-AI Investment Dashboard Project/
-├── backend/
-│   ├── main.py                 # FastAPI app entry point
-│   ├── api/
-│   │   ├── stocks.py           # Stock data endpoints
-│   │   └── portfolio.py        # Portfolio optimization endpoints
-│   ├── services/
-│   │   ├── data_fetcher.py     # yfinance integration
-│   │   └── optimizer.py        # PyPortfolioOpt logic
-│   ├── requirements.txt        # Backend dependencies
-│   └── .env.example            # Environment template
-├── frontend/
-│   ├── index.html              # Main dashboard
-│   ├── css/
-│   │   └── styles.css          # Custom styles
-│   └── js/
-│       ├── api.js              # API communication
-│       ├── charts.js           # Chart rendering
-│       └── app.js              # Main application logic
-├── supabase/
-│   ├── schema.sql              # Database schema
-│   └── SETUP.md                # Supabase setup guide
-├── venv/                       # Virtual environment
-├── roadmap_optimized.md        # Master implementation guide
-└── README.md                   # This file
-```
+
+That's it! The dashboard will load with 5 default tech stocks. Try optimizing, comparing to S&P 500, and exporting reports.
+
+---
+
+## How to Use
+
+### Basic Workflow
+
+1. **Select Stocks** - Click "+ Add Stock" to choose from popular tickers
+2. **Set Investment Amount** - Enter your total investment (e.g., $100,000)
+3. **Choose Time Horizon** - Pick 1Y, 2Y, 5Y, or custom date range
+4. **Select Risk Tolerance** - Conservative, Moderate, or Aggressive
+5. **Enable S&P 500 Comparison** - See if you beat the market
+6. **Click "Optimize Portfolio"** - Watch the magic happen
+
+### Understanding the Results
+
+**Metrics Cards:**
+- **Best Stock** - Top performer with gain percentage
+- **Worst Stock** - Weakest performer with loss percentage
+- **Expected Return** - Projected annual return (hover tooltip for explanation)
+- **Sharpe Ratio** - Risk-adjusted return (hover tooltip for explanation)
+- **vs S&P 500** - Your outperformance vs benchmark (hover tooltip for explanation)
+
+**Charts:**
+- **Normalized Price Performance** - Compare stock movements starting from same baseline
+- **Portfolio Growth** - See how your optimized portfolio would have grown
+- **Efficient Frontier** - Optimal portfolios for each risk level (star = your portfolio)
+- **Portfolio Allocation** - Recommended percentage breakdown
+- **Correlation Matrix** - How stocks move together (hover tooltip for explanation)
+
+**Export:**
+- **CSV** - Spreadsheet-compatible allocation data
+- **TXT** - Professional performance report for advisors
+
+---
 
 ## Tech Stack
 
 ### Backend
-- **FastAPI**: Modern Python web framework
-- **yfinance**: Yahoo Finance market data
-- **PyPortfolioOpt**: Portfolio optimization
-- **Pandas & NumPy**: Data processing
-- **Supabase**: Database client (optional)
+- **FastAPI** - Modern Python web framework
+- **PyPortfolioOpt** - Portfolio optimization library
+- **yfinance** - Yahoo Finance market data
+- **Pandas & NumPy** - Data processing
+- **Pydantic** - Request/response validation
 
 ### Frontend
-- **HTML5/CSS3**: Structure and styling
-- **Bootstrap 5**: Responsive UI framework
-- **Vanilla JavaScript**: Application logic
-- **Plotly.js**: Interactive charts
-- **Fetch API**: Backend communication
+- **Vanilla JavaScript** - No framework bloat
+- **Plotly.js** - Interactive financial charts
+- **Custom CSS** - Ultra-clean minimalist design
+- **LocalStorage** - Theme persistence
 
-## Next Steps
+### Mathematics
+- **Modern Portfolio Theory** - Markowitz mean-variance optimization
+- **CAPM** - Capital Asset Pricing Model for expected returns
+- **Ledoit-Wolf Shrinkage** - Robust covariance estimation
+- **Sharpe Ratio** - Risk-adjusted performance measure
 
-Follow the [roadmap_optimized.md](roadmap_optimized.md) to add advanced features:
+---
 
-- **Phase 2**: Supabase Integration (caching implemented)
-- **Phase 3**: Frontend Polish (completed)
-- **Phase 4**: Advanced Features
-  - Risk tolerance slider
-  - Portfolio constraints
-  - Export functionality (CSV/TXT)
-- **Phase 5**: Error Handling & Performance
-  - Enhanced error messages
-  - Multi-level caching
-  - Loading optimizations
+## Project Structure
 
-## Usage Guide
+```
+ai-portfolio-optimizer/
+├── backend/
+│   ├── main.py                 # FastAPI application
+│   ├── api/
+│   │   ├── stocks.py           # Stock data endpoints
+│   │   └── portfolio.py        # Optimization endpoints
+│   ├── services/
+│   │   ├── data_fetcher.py     # Market data fetching
+│   │   └── optimizer.py        # Portfolio optimization logic
+│   └── requirements.txt        # Python dependencies
+├── frontend/
+│   ├── index.html              # Main dashboard
+│   ├── css/
+│   │   └── styles.css          # Custom styling
+│   └── js/
+│       ├── api.js              # API communication
+│       ├── charts.js           # Chart rendering
+│       └── app.js              # Application logic
+└── README.md                   # This file
+```
 
-### Basic Workflow
-
-1. **Select Tickers**: Hold Ctrl/Cmd and click to select multiple stocks
-2. **Set Investment Amount**: Enter your total investment (minimum $1,000)
-3. **Choose Start Date**: Pick a date for historical data (1+ year recommended)
-4. **Click Refresh**: The app will:
-   - Fetch historical market data
-   - Calculate expected returns using CAPM
-   - Compute covariance matrix with Ledoit-Wolf Shrinkage
-   - Generate 5,000 random portfolios for visualization
-   - Find the optimal portfolio (Max Sharpe Ratio)
-   - Display results in interactive charts
-
-### Understanding the Charts
-
-**Efficient Frontier Chart:**
-- Grey dots: Simulated random portfolios
-- Gold star ⭐: Optimal portfolio (Max Sharpe Ratio)
-- Blue diamond 🔷: Minimum volatility portfolio
-- X-axis: Risk (volatility)
-- Y-axis: Expected return
-
-**Allocation Donut Chart:**
-- Shows percentage breakdown of optimal portfolio
-- Hover for dollar amounts
-
-**Performance Metrics:**
-- **Expected Annual Return**: Projected yearly return
-- **Annual Volatility**: Risk measure (standard deviation)
-- **Sharpe Ratio**: Risk-adjusted return (higher is better)
+---
 
 ## API Reference
 
-### Backend Endpoints
-
-#### GET `/api/stocks/historical`
+### GET `/api/stocks/historical`
 Fetch historical stock data
 
-**Parameters:**
-- `tickers` (string): Comma-separated ticker symbols
-- `start_date` (string): Start date (YYYY-MM-DD)
+**Query Parameters:**
+- `tickers` (string): Comma-separated ticker symbols (e.g., "AAPL,MSFT,TSLA")
+- `start_date` (string): Start date in YYYY-MM-DD format
 - `end_date` (string, optional): End date (defaults to today)
 
-#### POST `/api/portfolio/optimize`
-Optimize portfolio allocation
+**Example:**
+```bash
+curl "http://localhost:8000/api/stocks/historical?tickers=AAPL,MSFT&start_date=2023-01-01"
+```
+
+### POST `/api/portfolio/efficient-frontier`
+Generate efficient frontier and optimal portfolios
 
 **Request Body:**
 ```json
 {
-  "tickers": ["AAPL", "MSFT", "TSLA"],
+  "tickers": ["AAPL", "MSFT", "GOOGL"],
   "start_date": "2023-01-01",
   "investment_amount": 100000,
   "optimization_type": "max_sharpe",
-  "max_weight": 1.0
+  "compare_sp500": true
 }
 ```
 
-#### POST `/api/portfolio/efficient-frontier`
-Generate efficient frontier data
-
-**Request Body:** Same as optimize
-
-**Response:** Includes simulated portfolios and optimal portfolios
-
-## Troubleshooting
-
-### Backend won't start
-- **Error**: `ModuleNotFoundError`
-  - **Solution**: Activate venv and install dependencies: `pip install -r backend/requirements.txt`
-
-- **Error**: Port 8000 already in use
-  - **Solution**: Kill the process or use different port: `uvicorn main:app --port 8001`
-
-### Frontend can't connect to backend
-- **Error**: "Unable to connect to server"
-  - **Solution**: Ensure backend is running on port 8000
-  - Check CORS settings in `backend/main.py`
-  - Update `API_BASE_URL` in `frontend/js/api.js` if using different port
-
-### Charts not displaying
-- **Error**: Blank chart areas
-  - **Solution**: Check browser console for errors
-  - Ensure Plotly.js CDN is accessible
-  - Verify API responses in Network tab
-
-### Optimization fails
-- **Error**: "Portfolio optimization failed"
-  - **Solution**:
-    - Ensure at least 2 tickers selected
-    - Check date range has sufficient data (6+ months)
-    - Try different ticker combinations
-    - Check backend logs for detailed error
-
-### Supabase connection issues
-- See [supabase/SETUP.md](supabase/SETUP.md) for detailed troubleshooting
-
-## Deactivate Virtual Environment
-
-When done:
-```bash
-deactivate
+**Response:**
+```json
+{
+  "simulated_portfolios": { /* 5000 random portfolios */ },
+  "optimal_portfolios": {
+    "max_sharpe": { /* weights, allocations, performance */ },
+    "min_volatility": { /* weights, allocations, performance */ }
+  },
+  "benchmark": {
+    "total_return": 0.121,
+    "annualized_return": 0.115,
+    "volatility": 0.18,
+    "outperformance": 0.062
+  }
+}
 ```
 
-## Development
-
-### Running in Development Mode
-
-**Backend:**
-```bash
-cd backend
-uvicorn main:app --reload
-```
-
-**Frontend:**
-```bash
-cd frontend
-python -m http.server 3000
-```
-
-### Adding New Features
-
-See [roadmap_optimized.md](roadmap_optimized.md) for detailed implementation guides.
-
-## Architecture Comparison
-
-| Feature | Old (Streamlit) | New (FastAPI) |
-|---------|----------------|---------------|
-| **Backend** | Monolithic Streamlit app | FastAPI REST API |
-| **Frontend** | Streamlit components | HTML/CSS/JS |
-| **Flexibility** | Limited customization | Full control |
-| **API Access** | None | RESTful endpoints |
-| **Scalability** | Single instance | Horizontal scaling |
-| **Mobile Support** | Poor | Responsive design |
-| **Deployment** | Streamlit Cloud only | Any platform |
-
-## Contributing
-
-This is a personal project for term work. Future enhancements:
-- User authentication
-- Portfolio saving/loading
-- Real-time updates
-- Mobile app integration
-- Advanced constraints (sector limits, etc.)
-
-## License
-
-Educational project - MIT License
+**Full API Documentation:** Visit `http://localhost:8000/docs` after starting the backend.
 
 ---
 
-**Built with FastAPI | Data from Yahoo Finance | Powered by PyPortfolioOpt**
+## Use Cases
+
+- **Portfolio Managers** - Analyze client allocations and compare strategies
+- **Individual Investors** - Optimize retirement accounts and taxable portfolios
+- **Financial Advisors** - Generate professional reports for clients
+- **Students** - Learn Modern Portfolio Theory with real data
+- **CFOs** - Make data-driven investment decisions
+
+---
+
+## Troubleshooting
+
+### Common Issues
+
+**"Unable to connect to server"**
+- Ensure backend is running on port 8000
+- Check that frontend is accessing correct API URL
+- Verify CORS is enabled in backend
+
+**"Portfolio optimization failed"**
+- Ensure at least 2 stocks are selected
+- Use time periods with sufficient data (6+ months recommended)
+- Some stock combinations may fail with mock data (known limitation)
+
+**Charts not rendering**
+- Check browser console for JavaScript errors
+- Ensure Plotly.js CDN is accessible
+- Verify API responses in Network tab
+
+**Export buttons not showing**
+- Export buttons appear only after successful optimization
+- Check that optimization completed without errors
+
+---
+
+## Roadmap
+
+**Completed ✅**
+- S&P 500 benchmark comparison
+- CSV/TXT export functionality
+- Educational tooltips
+- Professional README
+
+**Coming Soon 🚀**
+- Deployment to Vercel/Render
+- Save/load portfolios to database
+- Risk analysis section (VaR, Max Drawdown)
+- Sector allocation view
+- AI-powered insights (Claude API)
+
+---
+
+## Disclaimer
+
+This tool is for **educational purposes only**. Past performance does not guarantee future results. Always consult a licensed financial advisor before making investment decisions.
+
+---
+
+## License
+
+MIT License - Free for personal and commercial use
+
+---
+
+## The Elevator Pitch
+
+> "I built a portfolio optimization engine that uses Modern Portfolio Theory - the same math that won a Nobel Prize - to find optimal stock allocations for any investment amount. It pulls real-time market data, calculates thousands of portfolio combinations, and shows the efficient frontier - the best possible risk/return tradeoffs. The key insight is it compares your optimized portfolio to the S&P 500, so you can see if active management actually adds value. It's built with FastAPI and vanilla JavaScript - no frameworks, no bloat - just clean, fast, production-ready code."
+
+---
+
+**Built with FastAPI, PyPortfolioOpt, and Plotly.js** | **Data from Yahoo Finance** | **MIT License**

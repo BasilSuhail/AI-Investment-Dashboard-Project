@@ -60,7 +60,12 @@
 
             <!-- Risk Tolerance -->
             <div class="control-group">
-                <label class="control-label">Risk Tolerance</label>
+                <label class="control-label">
+                    Risk Tolerance
+                    <span class="tooltip-icon">i
+                        <span class="tooltip-content">Conservative minimizes volatility (safest). Moderate balances risk and return. Aggressive maximizes returns (highest risk). Choose based on your comfort with market fluctuations.</span>
+                    </span>
+                </label>
                 <select class="select-field" id="riskTolerance">
                     <option value="conservative">Conservative</option>
                     <option value="moderate" selected>Moderate</option>
@@ -101,15 +106,30 @@
                     <div class="metric-value negative" id="worstLoss">--</div>
                 </div>
                 <div class="metric-card">
-                    <div class="metric-label">Expected Return</div>
+                    <div class="metric-label-with-tooltip">
+                        <span>Expected Return</span>
+                        <span class="tooltip-icon">i
+                            <span class="tooltip-content">Average annual return based on historical data. This is a projection and doesn't guarantee future results. Higher percentages indicate better potential returns.</span>
+                        </span>
+                    </div>
                     <div class="metric-value" id="expectedReturn">--</div>
                 </div>
                 <div class="metric-card">
-                    <div class="metric-label">Sharpe Ratio</div>
+                    <div class="metric-label-with-tooltip">
+                        <span>Sharpe Ratio</span>
+                        <span class="tooltip-icon">i
+                            <span class="tooltip-content">Risk-adjusted return measure. Higher is better. Above 1.0 is good, above 2.0 is excellent. It tells you if extra return is worth the extra risk.</span>
+                        </span>
+                    </div>
                     <div class="metric-value" id="sharpeRatio">--</div>
                 </div>
                 <div class="metric-card" id="sp500Card" style="display: none;">
-                    <div class="metric-label">vs S&P 500</div>
+                    <div class="metric-label-with-tooltip">
+                        <span>vs S&P 500</span>
+                        <span class="tooltip-icon">i
+                            <span class="tooltip-content">Compares your portfolio to the S&P 500 benchmark. Positive means you're beating the market. Negative means index funds might be better.</span>
+                        </span>
+                    </div>
                     <div class="metric-value" id="sp500Comparison">--</div>
                 </div>
             </div>
@@ -129,11 +149,21 @@
             <!-- Two Column Charts -->
             <div class="chart-grid">
                 <div class="chart-container">
-                    <h3 class="chart-title">Efficient Frontier</h3>
+                    <h3 class="chart-title-with-tooltip">
+                        <span>Efficient Frontier</span>
+                        <span class="tooltip-icon">i
+                            <span class="tooltip-content">Shows the best possible portfolios for each risk level. The curve represents optimal combinations where you can't get higher returns without taking more risk. Your optimal portfolio is marked with a star.</span>
+                        </span>
+                    </h3>
                     <div id="frontierChart" class="chart"></div>
                 </div>
                 <div class="chart-container">
-                    <h3 class="chart-title">Portfolio Allocation</h3>
+                    <h3 class="chart-title-with-tooltip">
+                        <span>Portfolio Allocation</span>
+                        <span class="tooltip-icon">i
+                            <span class="tooltip-content">Your recommended stock weights based on mathematical optimization. Percentages show how much of your investment should go into each stock for the best risk-adjusted returns.</span>
+                        </span>
+                    </h3>
                     <div id="allocationChart" class="chart"></div>
                     <div class="export-buttons" id="exportButtons" style="display: none;">
                         <button class="export-btn" id="exportCSV">Export Allocation (CSV)</button>
@@ -144,7 +174,12 @@
 
             <!-- Correlation Matrix -->
             <div class="chart-container">
-                <h3 class="chart-title">Correlation Matrix</h3>
+                <h3 class="chart-title-with-tooltip">
+                    <span>Correlation Matrix</span>
+                    <span class="tooltip-icon">i
+                        <span class="tooltip-content">Shows how stocks move together. Values near 1.0 mean stocks move in sync (less diversification). Values near 0 or negative mean stocks move independently (better diversification and risk reduction).</span>
+                    </span>
+                </h3>
                 <div id="correlationChart" class="chart"></div>
             </div>
         </main>
