@@ -99,30 +99,36 @@ function initializeAssetDropdown() {
     const doneBtn = document.getElementById('doneBtn');
     const searchInput = document.getElementById('assetSearch');
     const assetOptions = document.querySelectorAll('.asset-option');
+    const chipsContainer = document.getElementById('tickerChips');
 
-    // Toggle dropdown
-    dropdownBtn.addEventListener('click', function(e) {
+    // Function to open dropdown
+    function openDropdown(triggerElement) {
+        const rect = triggerElement.getBoundingClientRect();
+        dropdown.style.position = 'fixed';
+        dropdown.style.top = (rect.bottom + 8) + 'px';
+        dropdown.style.left = rect.left + 'px';
+        dropdown.style.display = 'block';
+    }
+
+    // Function to close dropdown
+    function closeDropdown() {
+        dropdown.style.display = 'none';
+        searchInput.value = '';
+        assetOptions.forEach(option => option.style.display = 'flex');
+    }
+
+    // Click on chips container to open dropdown
+    chipsContainer.addEventListener('click', function(e) {
+        // Don't trigger if clicking on chip remove button
+        if (e.target.closest('.chip-remove')) return;
         e.stopPropagation();
-        const isOpen = dropdown.style.display === 'block';
-
-        if (!isOpen) {
-            // Position dropdown relative to button
-            const rect = dropdownBtn.getBoundingClientRect();
-            dropdown.style.top = (rect.bottom + 8) + 'px';
-            dropdown.style.left = rect.left + 'px';
-            dropdown.style.display = 'block';
-            dropdownBtn.classList.add('open');
-        } else {
-            dropdown.style.display = 'none';
-            dropdownBtn.classList.remove('open');
-        }
+        openDropdown(this);
     });
 
     // Close dropdown when clicking outside
     document.addEventListener('click', function(e) {
-        if (!dropdown.contains(e.target) && e.target !== dropdownBtn) {
-            dropdown.style.display = 'none';
-            dropdownBtn.classList.remove('open');
+        if (!dropdown.contains(e.target) && !chipsContainer.contains(e.target)) {
+            closeDropdown();
         }
     });
 
@@ -148,12 +154,7 @@ function initializeAssetDropdown() {
 
     // Done button - close dropdown and refresh
     doneBtn.addEventListener('click', function() {
-        dropdown.style.display = 'none';
-        dropdownBtn.classList.remove('open');
-        searchInput.value = '';
-        assetOptions.forEach(option => option.style.display = 'flex');
-
-        // Auto-refresh portfolio
+        closeDropdown();
         scheduleAutoRefresh();
     });
 }
