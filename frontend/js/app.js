@@ -1,278 +1,209 @@
 /**
- * Modern Portfolio Optimizer - Application Logic
- * With auto-refresh and theme switching
+ * Portfolio Optimizer - Clean Implementation
  */
 
-// Global State
-let selectedTickers = ['AAPL', 'MSFT', 'TSLA', 'GOOGL', 'AMZN']; // Default selections
-let currentPortfolioData = null;
-let autoRefreshTimeout = null;
+// Available stocks
+const AVAILABLE_STOCKS = [
+    { ticker: 'AAPL', name: 'Apple Inc.' },
+    { ticker: 'MSFT', name: 'Microsoft' },
+    { ticker: 'GOOGL', name: 'Alphabet (Google)' },
+    { ticker: 'NVDA', name: 'Nvidia' },
+    { ticker: 'AMZN', name: 'Amazon' },
+    { ticker: 'TSLA', name: 'Tesla' },
+    { ticker: 'META', name: 'Meta (Facebook)' },
+    { ticker: 'NFLX', name: 'Netflix' },
+    { ticker: 'JPM', name: 'JPMorgan Chase' },
+    { ticker: 'V', name: 'Visa' },
+    { ticker: 'WMT', name: 'Walmart' },
+    { ticker: 'DIS', name: 'Disney' },
+    { ticker: 'BTC-USD', name: 'Bitcoin' },
+    { ticker: 'ETH-USD', name: 'Ethereum' },
+    { ticker: 'GLD', name: 'Gold ETF' }
+];
 
-// Initialize app when DOM is ready
-document.addEventListener('DOMContentLoaded', function() {
-    initializeTheme();
+// Global state
+let selectedStocks = ['AAPL', 'MSFT', 'GOOGL', 'NVDA', 'AMZN'];
+let selectedMonths = 12;
+let currentData = null;
+
+// Initialize
+document.addEventListener('DOMContentLoaded', () => {
+    initializeStockChips();
+    initializeDropdown();
     initializeControls();
-    console.log('Portfolio Optimizer initialized');
+    renderChips();
 });
 
 /**
- * Initialize theme from localStorage or system preference
+ * Initialize stock chips
  */
-function initializeTheme() {
-    const savedTheme = localStorage.getItem('theme');
-    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-    const theme = savedTheme || (prefersDark ? 'dark' : 'light');
-
-    document.documentElement.setAttribute('data-theme', theme);
-
-    // Theme toggle button
-    const themeToggle = document.getElementById('themeToggle');
-    themeToggle.addEventListener('click', function() {
-        const currentTheme = document.documentElement.getAttribute('data-theme');
-        const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-        document.documentElement.setAttribute('data-theme', newTheme);
-        localStorage.setItem('theme', newTheme);
-    });
-}
-
-/**
- * Initialize all controls and event listeners
- */
-function initializeControls() {
-    // Initialize asset dropdown
-    initializeAssetDropdown();
-
-    // Render initial chips
+function initializeStockChips() {
     renderChips();
-
-    // Time period buttons with auto-refresh
-    document.querySelectorAll('.time-btn').forEach(btn => {
-        btn.addEventListener('click', function() {
-            document.querySelectorAll('.time-btn').forEach(b => b.classList.remove('active'));
-            this.classList.add('active');
-            setTimePeriod(parseInt(this.dataset.period));
-            scheduleAutoRefresh();
-        });
-    });
-
-    // Risk tolerance with auto-refresh
-    const riskTolerance = document.getElementById('riskTolerance');
-    riskTolerance.addEventListener('change', function() {
-        scheduleAutoRefresh();
-    });
-
-    // Max weight slider
-    const maxWeight = document.getElementById('maxWeight');
-    maxWeight.addEventListener('input', function() {
-        document.getElementById('maxWeightValue').textContent = this.value + '%';
-    });
-
-    maxWeight.addEventListener('change', function() {
-        scheduleAutoRefresh();
-    });
-
-    // Investment amount (auto-refresh on blur)
-    const investmentAmount = document.getElementById('investmentAmount');
-    investmentAmount.addEventListener('blur', function() {
-        scheduleAutoRefresh();
-    });
-
-    // Export button
-    const exportBtn = document.getElementById('exportBtn');
-    exportBtn.addEventListener('click', exportPortfolio);
-
-    // Set default date (1 year ago)
-    setTimePeriod(12);
-
-    // Initial load
-    setTimeout(() => {
-        handleRefresh();
-    }, 300);
 }
 
 /**
- * Initialize asset dropdown functionality
+ * Render stock chips
  */
-function initializeAssetDropdown() {
-    const dropdownBtn = document.getElementById('assetDropdownBtn');
-    const dropdown = document.getElementById('assetDropdown');
-    const doneBtn = document.getElementById('doneBtn');
-    const searchInput = document.getElementById('assetSearch');
-    const assetOptions = document.querySelectorAll('.asset-option');
-    const chipsContainer = document.getElementById('tickerChips');
+function renderChips() {
+    const container = document.getElementById('stockChips');
+    container.innerHTML = '';
 
-    // Function to open dropdown
-    function openDropdown(triggerElement) {
-        const rect = triggerElement.getBoundingClientRect();
-        dropdown.style.position = 'fixed';
+    selectedStocks.forEach(ticker => {
+        const chip = document.createElement('div');
+        chip.className = 'chip';
+        chip.innerHTML = `
+            ${ticker}
+            <button class="chip-remove" data-ticker="${ticker}">×</button>
+        `;
+
+        chip.querySelector('.chip-remove').addEventListener('click', (e) => {
+            e.stopPropagation();
+            removeStock(ticker);
+        });
+
+        container.appendChild(chip);
+    });
+}
+
+/**
+ * Remove stock
+ */
+function removeStock(ticker) {
+    selectedStocks = selectedStocks.filter(t => t !== ticker);
+    renderChips();
+    updateDropdownCheckboxes();
+}
+
+/**
+ * Initialize dropdown
+ */
+function initializeDropdown() {
+    const addBtn = document.getElementById('addStockBtn');
+    const dropdown = document.getElementById('stockDropdown');
+    const searchInput = document.getElementById('searchInput');
+    const stockList = document.getElementById('stockList');
+
+    // Render stock list
+    renderStockList();
+
+    // Toggle dropdown
+    addBtn.addEventListener('click', () => {
+        const rect = addBtn.getBoundingClientRect();
+        dropdown.style.display = dropdown.style.display === 'none' ? 'block' : 'none';
         dropdown.style.top = (rect.bottom + 8) + 'px';
         dropdown.style.left = rect.left + 'px';
-        dropdown.style.display = 'block';
-    }
-
-    // Function to close dropdown
-    function closeDropdown() {
-        dropdown.style.display = 'none';
-        searchInput.value = '';
-        assetOptions.forEach(option => option.style.display = 'flex');
-    }
-
-    // Click on chips container to open dropdown
-    chipsContainer.addEventListener('click', function(e) {
-        // Don't trigger if clicking on chip remove button
-        if (e.target.closest('.chip-remove')) return;
-        e.stopPropagation();
-        openDropdown(this);
     });
 
     // Close dropdown when clicking outside
-    document.addEventListener('click', function(e) {
-        if (!dropdown.contains(e.target) && !chipsContainer.contains(e.target)) {
-            closeDropdown();
+    document.addEventListener('click', (e) => {
+        if (!dropdown.contains(e.target) && e.target !== addBtn) {
+            dropdown.style.display = 'none';
         }
     });
 
     // Search functionality
-    searchInput.addEventListener('input', function() {
-        const searchTerm = this.value.toLowerCase();
-        assetOptions.forEach(option => {
-            const ticker = option.querySelector('.asset-ticker').textContent.toLowerCase();
-            const name = option.querySelector('.asset-name').textContent.toLowerCase();
-            const matches = ticker.includes(searchTerm) || name.includes(searchTerm);
-            option.style.display = matches ? 'flex' : 'none';
-        });
-    });
-
-    // Update chips when checkboxes change
-    assetOptions.forEach(option => {
-        const checkbox = option.querySelector('input[type="checkbox"]');
-        checkbox.addEventListener('change', function() {
-            updateSelectedTickers();
-            renderChips();
-        });
-    });
-
-    // Done button - close dropdown and refresh
-    doneBtn.addEventListener('click', function() {
-        closeDropdown();
-        scheduleAutoRefresh();
+    searchInput.addEventListener('input', (e) => {
+        const term = e.target.value.toLowerCase();
+        filterStockList(term);
     });
 }
 
 /**
- * Render selected asset chips
+ * Render stock list
  */
-function renderChips() {
-    const chipsContainer = document.getElementById('tickerChips');
-    chipsContainer.innerHTML = '';
+function renderStockList() {
+    const stockList = document.getElementById('stockList');
+    stockList.innerHTML = '';
 
-    selectedTickers.forEach(ticker => {
-        const chip = document.createElement('div');
-        chip.className = 'chip';
-        chip.innerHTML = `
-            <span>${ticker}</span>
-            <button class="chip-remove" data-ticker="${ticker}">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <line x1="18" y1="6" x2="6" y2="18"></line>
-                    <line x1="6" y1="6" x2="18" y2="18"></line>
-                </svg>
-            </button>
+    AVAILABLE_STOCKS.forEach(stock => {
+        const item = document.createElement('label');
+        item.className = 'stock-item';
+        item.innerHTML = `
+            <input type="checkbox" value="${stock.ticker}" ${selectedStocks.includes(stock.ticker) ? 'checked' : ''}>
+            <div>
+                <div class="stock-ticker">${stock.ticker}</div>
+                <div class="stock-name">${stock.name}</div>
+            </div>
         `;
 
-        // Remove chip when clicking X
-        chip.querySelector('.chip-remove').addEventListener('click', function(e) {
-            e.stopPropagation();
-            const tickerToRemove = this.dataset.ticker;
-
-            // Uncheck in dropdown
-            const checkbox = document.querySelector(`.asset-option input[value="${tickerToRemove}"]`);
-            if (checkbox) {
-                checkbox.checked = false;
+        const checkbox = item.querySelector('input');
+        checkbox.addEventListener('change', () => {
+            if (checkbox.checked) {
+                if (!selectedStocks.includes(stock.ticker)) {
+                    selectedStocks.push(stock.ticker);
+                }
+            } else {
+                selectedStocks = selectedStocks.filter(t => t !== stock.ticker);
             }
-
-            // Update and re-render
-            updateSelectedTickers();
             renderChips();
-            scheduleAutoRefresh();
         });
 
-        chipsContainer.appendChild(chip);
+        stockList.appendChild(item);
     });
 }
 
 /**
- * Update selected tickers array from checkboxes
+ * Filter stock list
  */
-function updateSelectedTickers() {
-    selectedTickers = Array.from(document.querySelectorAll('.asset-option input[type="checkbox"]:checked'))
-        .map(checkbox => checkbox.value);
-    console.log('Selected tickers:', selectedTickers);
+function filterStockList(term) {
+    const items = document.querySelectorAll('.stock-item');
+    items.forEach(item => {
+        const text = item.textContent.toLowerCase();
+        item.style.display = text.includes(term) ? 'flex' : 'none';
+    });
 }
 
 /**
- * Schedule auto-refresh with debounce (500ms delay)
+ * Update dropdown checkboxes
  */
-function scheduleAutoRefresh() {
-    if (autoRefreshTimeout) {
-        clearTimeout(autoRefreshTimeout);
+function updateDropdownCheckboxes() {
+    const checkboxes = document.querySelectorAll('.stock-item input[type="checkbox"]');
+    checkboxes.forEach(checkbox => {
+        checkbox.checked = selectedStocks.includes(checkbox.value);
+    });
+}
+
+/**
+ * Initialize controls
+ */
+function initializeControls() {
+    // Time horizon buttons
+    document.querySelectorAll('.pill-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.querySelectorAll('.pill-btn').forEach(b => b.classList.remove('pill-btn-active'));
+            btn.classList.add('pill-btn-active');
+            selectedMonths = parseInt(btn.dataset.months);
+        });
+    });
+
+    // Optimize button
+    document.getElementById('optimizeBtn').addEventListener('click', () => {
+        optimizePortfolio();
+    });
+}
+
+/**
+ * Optimize portfolio
+ */
+async function optimizePortfolio() {
+    if (selectedStocks.length < 2) {
+        alert('Please select at least 2 stocks');
+        return;
     }
 
-    // Update status indicator
-    updateStatus('Updating...', 'warning');
+    // Show loading
+    document.getElementById('loadingOverlay').style.display = 'flex';
 
-    autoRefreshTimeout = setTimeout(() => {
-        handleRefresh();
-    }, 500);
-}
-
-/**
- * Update status indicator
- */
-function updateStatus(text, type = 'success') {
-    const statusText = document.querySelector('.status-text');
-    const statusDot = document.querySelector('.status-dot');
-
-    if (statusText) {
-        statusText.textContent = text;
-    }
-
-    if (statusDot) {
-        statusDot.style.backgroundColor = type === 'warning' ? 'var(--warning)' : 'var(--success)';
-    }
-}
-
-/**
- * Set time period based on months
- */
-function setTimePeriod(months) {
-    const date = new Date();
-    date.setMonth(date.getMonth() - months);
-    // Store in a hidden variable since we don't have a date input anymore
-    window.currentStartDate = date.toISOString().split('T')[0];
-}
-
-/**
- * Handle refresh (auto-triggered on selections)
- */
-async function handleRefresh() {
     try {
-        // Update selected tickers array
-        updateSelectedTickers();
+        // Calculate start date
+        const endDate = new Date();
+        const startDate = new Date();
+        startDate.setMonth(startDate.getMonth() - selectedMonths);
 
-        // Validate inputs
-        if (selectedTickers.length < 2) {
-            showAlert('Please select at least 2 assets', 'warning');
-            updateStatus('Select assets', 'warning');
-            return;
-        }
-
-        // Get form values
+        const startDateStr = startDate.toISOString().split('T')[0];
         const investmentAmount = parseFloat(document.getElementById('investmentAmount').value) || 100000;
         const riskTolerance = document.getElementById('riskTolerance').value;
-        const maxWeight = parseFloat(document.getElementById('maxWeight').value) / 100;
-        const startDate = window.currentStartDate || new Date(new Date().setFullYear(new Date().getFullYear() - 1)).toISOString().split('T')[0];
 
-        // Determine optimization type
         let optimizationType = 'max_sharpe';
         if (riskTolerance === 'conservative') {
             optimizationType = 'min_volatility';
@@ -280,245 +211,56 @@ async function handleRefresh() {
             optimizationType = 'max_sharpe';
         }
 
+        // Step 1: Fetch stock data
+        const stockData = await fetchStockData(selectedStocks, startDateStr);
+        console.log('Stock data:', stockData);
+
+        // Step 2: Get efficient frontier
         const requestBody = {
-            tickers: selectedTickers,
-            start_date: startDate,
+            tickers: selectedStocks,
+            start_date: startDateStr,
             investment_amount: investmentAmount,
             optimization_type: optimizationType,
-            max_weight: maxWeight
+            max_weight: 1.0
         };
 
-        // Show loading state
-        showLoadingState();
-
-        // Save user preferences
-        saveUserPreferences();
-
-        // Step 1: Fetch stock data
-        console.log('Fetching stock data...');
-        const stockData = await fetchStockData(selectedTickers, startDate);
-        console.log('Stock data received:', stockData);
-
-        // Display warning if tickers were removed
-        if (stockData.message) {
-            showAlert(stockData.message, 'warning');
-        }
-
-        // Render market data table
-        renderMarketDataTable(stockData);
-
-        // Calculate best/worst performers
-        renderPerformanceCards(stockData);
-
-        // Render normalized price chart
-        renderNormalizedPrices(stockData);
-
-        // Step 2: Get efficient frontier data
-        console.log('Calculating efficient frontier...');
         const frontierData = await getEfficientFrontier(requestBody);
-        console.log('Efficient frontier calculated:', frontierData);
+        console.log('Frontier data:', frontierData);
 
-        // Store data for export
-        currentPortfolioData = {
-            stockData: stockData,
-            frontierData: frontierData,
-            requestBody: requestBody
+        // Store data
+        currentData = {
+            stockData,
+            frontierData,
+            requestBody
         };
 
-        // Enable export button
-        const exportBtn = document.getElementById('exportBtn');
-        exportBtn.disabled = false;
-
-        // Determine which portfolio to display based on risk tolerance
-        const selectedPortfolio = requestBody.optimization_type === 'min_volatility'
-            ? frontierData.optimal_portfolios.min_volatility
-            : frontierData.optimal_portfolios.max_sharpe;
+        // Render metrics
+        renderMetrics(stockData, frontierData, optimizationType);
 
         // Render charts
+        renderNormalizedPrices(stockData);
+        renderBacktestChart(stockData, frontierData, optimizationType, investmentAmount);
         renderEfficientFrontier(frontierData);
-        renderAllocationChart(selectedPortfolio.weights, selectedPortfolio.allocations);
-        renderMetricsCards(selectedPortfolio.performance);
-        renderBacktestChart(stockData, selectedPortfolio.weights, investmentAmount);
+        renderAllocationChart(frontierData, optimizationType);
         renderCorrelationHeatmap(stockData);
 
-        // Hide loading state
-        hideLoadingState();
-
-        // Update status
-        updateStatus('Optimized', 'success');
-
-        // Show success message
-        showAlert('Portfolio optimized successfully!', 'success');
-
     } catch (error) {
-        console.error('Error in handleRefresh:', error);
-        hideLoadingState();
-        updateStatus('Error', 'warning');
-        showAlert('Failed to optimize portfolio. Please try again.', 'danger');
+        console.error('Error:', error);
+        alert('Failed to optimize portfolio. Please try again.');
+    } finally {
+        document.getElementById('loadingOverlay').style.display = 'none';
     }
 }
 
 /**
- * Show loading overlay
+ * Render metrics
  */
-function showLoadingState() {
-    const overlay = document.getElementById('loadingOverlay');
-    if (overlay) {
-        overlay.style.display = 'flex';
-    }
-}
-
-/**
- * Hide loading overlay
- */
-function hideLoadingState() {
-    const overlay = document.getElementById('loadingOverlay');
-    if (overlay) {
-        overlay.style.display = 'none';
-    }
-}
-
-/**
- * Display alert message
- */
-function showAlert(message, type = 'info') {
-    const alertContainer = document.getElementById('alertContainer');
-    if (!alertContainer) return;
-
-    const alert = document.createElement('div');
-    alert.className = `alert alert-${type}`;
-    alert.textContent = message;
-
-    alertContainer.innerHTML = '';
-    alertContainer.appendChild(alert);
-
-    // Auto-dismiss after 5 seconds
-    setTimeout(() => {
-        alert.style.opacity = '0';
-        setTimeout(() => alert.remove(), 300);
-    }, 5000);
-}
-
-/**
- * Save user preferences to localStorage
- */
-function saveUserPreferences() {
-    const preferences = {
-        tickers: selectedTickers,
-        theme: document.documentElement.getAttribute('data-theme')
-    };
-
-    localStorage.setItem('portfolio_preferences', JSON.stringify(preferences));
-}
-
-/**
- * Load user preferences from localStorage (if any)
- */
-function loadUserPreferences() {
-    const saved = localStorage.getItem('portfolio_preferences');
-
-    if (saved) {
-        try {
-            const preferences = JSON.parse(saved);
-
-            // Restore selected tickers
-            if (preferences.tickers && preferences.tickers.length > 0) {
-                // Update checkboxes in dropdown
-                document.querySelectorAll('.asset-option input[type="checkbox"]').forEach(checkbox => {
-                    checkbox.checked = preferences.tickers.includes(checkbox.value);
-                });
-                selectedTickers = preferences.tickers;
-                renderChips();
-            }
-        } catch (error) {
-            console.error('Error loading preferences:', error);
-        }
-    }
-}
-
-/**
- * Format currency
- * @param {number} amount - Amount to format
- * @returns {string} Formatted currency string
- */
-function formatCurrency(amount) {
-    return new Intl.NumberFormat('en-US', {
-        style: 'currency',
-        currency: 'USD',
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2
-    }).format(amount);
-}
-
-/**
- * Format percentage
- * @param {number} value - Value to format
- * @param {number} decimals - Number of decimal places
- * @returns {string} Formatted percentage string
- */
-function formatPercentage(value, decimals = 2) {
-    return (value * 100).toFixed(decimals) + '%';
-}
-
-/**
- * Export portfolio to CSV
- */
-function exportPortfolio() {
-    if (!currentPortfolioData) {
-        showAlert('No portfolio data to export. Please optimize first.', 'warning');
-        return;
-    }
-
-    const riskTolerance = document.getElementById('riskTolerance').value;
-    const portfolio = riskTolerance === 'conservative'
-        ? currentPortfolioData.frontierData.optimal_portfolios.min_volatility
-        : currentPortfolioData.frontierData.optimal_portfolios.max_sharpe;
-
-    // Build CSV content
-    let csv = 'Portfolio Optimization Report\n';
-    csv += `Generated: ${new Date().toLocaleString()}\n`;
-    csv += `Investment Amount: ${formatCurrency(currentPortfolioData.requestBody.investment_amount)}\n`;
-    csv += `Risk Profile: ${riskTolerance.value.toUpperCase()}\n`;
-    csv += `Time Period: ${currentPortfolioData.requestBody.start_date} to ${new Date().toISOString().split('T')[0]}\n\n`;
-
-    csv += 'Performance Metrics\n';
-    csv += `Expected Annual Return,${formatPercentage(portfolio.performance.expected_return)}\n`;
-    csv += `Annual Volatility,${formatPercentage(portfolio.performance.volatility)}\n`;
-    csv += `Sharpe Ratio,${portfolio.performance.sharpe_ratio.toFixed(2)}\n\n`;
-
-    csv += 'Ticker,Weight,Dollar Allocation\n';
-    for (const [ticker, weight] of Object.entries(portfolio.weights)) {
-        const allocation = portfolio.allocations[ticker];
-        csv += `${ticker},${formatPercentage(weight)},${formatCurrency(allocation)}\n`;
-    }
-
-    // Download CSV file
-    const blob = new Blob([csv], { type: 'text/csv' });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `portfolio_${riskTolerance.value}_${new Date().toISOString().split('T')[0]}.csv`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    window.URL.revokeObjectURL(url);
-
-    displayAlert('Portfolio exported successfully!', 'success');
-}
-
-/**
- * Render performance summary cards
- */
-function renderPerformanceCards(stockData) {
-    if (!stockData || !stockData.tickers || stockData.tickers.length === 0) {
-        return;
-    }
-
+function renderMetrics(stockData, frontierData, optimizationType) {
+    // Calculate best/worst performers
     const tickers = stockData.tickers;
     const prices = stockData.prices;
     const returns = {};
 
-    // Calculate returns for each ticker
     for (const ticker of tickers) {
         const priceData = prices[ticker];
         if (priceData && priceData.length > 0) {
@@ -528,7 +270,7 @@ function renderPerformanceCards(stockData) {
         }
     }
 
-    // Find best and worst performers
+    // Find best and worst
     let bestTicker = null;
     let bestReturn = -Infinity;
     let worstTicker = null;
@@ -546,13 +288,31 @@ function renderPerformanceCards(stockData) {
     }
 
     // Update DOM
-    document.getElementById('bestPerformer').textContent = bestTicker || '--';
-    document.getElementById('bestPerformerGain').textContent = bestTicker
-        ? `+${formatPercentage(bestReturn)}`
+    document.getElementById('bestStock').textContent = bestTicker || '--';
+    document.getElementById('bestGain').textContent = bestTicker
+        ? `+${(bestReturn * 100).toFixed(2)}%`
         : '--';
 
-    document.getElementById('worstPerformer').textContent = worstTicker || '--';
-    document.getElementById('worstPerformerLoss').textContent = worstTicker
-        ? `${formatPercentage(worstReturn)}`
+    document.getElementById('worstStock').textContent = worstTicker || '--';
+    document.getElementById('worstLoss').textContent = worstTicker
+        ? `${(worstReturn * 100).toFixed(2)}%`
         : '--';
+
+    // Portfolio metrics
+    const portfolio = optimizationType === 'min_volatility'
+        ? frontierData.optimal_portfolios.min_volatility
+        : frontierData.optimal_portfolios.max_sharpe;
+
+    document.getElementById('expectedReturn').textContent =
+        `${(portfolio.performance.expected_return * 100).toFixed(2)}%`;
+
+    document.getElementById('sharpeRatio').textContent =
+        portfolio.performance.sharpe_ratio.toFixed(2);
+}
+
+/**
+ * Format percentage
+ */
+function formatPercentage(value, decimals = 2) {
+    return (value * 100).toFixed(decimals) + '%';
 }

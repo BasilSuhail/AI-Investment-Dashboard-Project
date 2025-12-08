@@ -12,23 +12,23 @@ function getPlotlyTemplate() {
 }
 
 /**
- * Get theme-aware colors
+ * Get theme-aware colors - Streamlit style
  */
 function getThemeColors() {
     const theme = document.documentElement.getAttribute('data-theme');
     if (theme === 'dark') {
         return {
-            paper_bgcolor: '#1a1f37',
-            plot_bgcolor: '#1a1f37',
-            font: { color: '#f9fafb' },
-            gridcolor: '#2d3548'
+            paper_bgcolor: '#262730',
+            plot_bgcolor: '#262730',
+            font: { color: '#fafafa', family: 'Source Sans Pro, sans-serif' },
+            gridcolor: '#38393f'
         };
     }
     return {
         paper_bgcolor: '#ffffff',
         plot_bgcolor: '#ffffff',
-        font: { color: '#1e2139' },
-        gridcolor: '#e5e7eb'
+        font: { color: '#0e1117', family: 'Source Sans Pro, sans-serif' },
+        gridcolor: '#e6eaef'
     };
 }
 
