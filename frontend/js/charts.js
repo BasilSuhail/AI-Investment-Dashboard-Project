@@ -40,7 +40,7 @@ function renderEfficientFrontier(data) {
         y: [optimal_portfolios.max_sharpe.performance.expected_return],
         mode: 'markers',
         type: 'scatter',
-        name: 'Max Sharpe Ratio ⭐',
+        name: 'Max Sharpe Ratio',
         marker: {
             size: 20,
             color: 'gold',
@@ -60,7 +60,7 @@ function renderEfficientFrontier(data) {
         y: [optimal_portfolios.min_volatility.performance.expected_return],
         mode: 'markers',
         type: 'scatter',
-        name: 'Min Volatility 🔷',
+        name: 'Min Volatility',
         marker: {
             size: 20,
             color: 'dodgerblue',

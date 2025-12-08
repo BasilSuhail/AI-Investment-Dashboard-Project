@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -13,286 +13,188 @@
 </head>
 <body>
     <!-- Navigation Header -->
-    <nav class="navbar navbar-dark bg-dark">
+    <nav class="navbar">
         <div class="container-fluid">
-            <span class="navbar-brand mb-0 h1">💼 CFO's Cockpit</span>
-            <span class="navbar-text text-light">Real-Time Portfolio Optimization Engine</span>
+            <div class="navbar-left">
+                <span class="navbar-brand">CFO's Cockpit</span>
+                <span class="navbar-subtitle">Portfolio Optimization Engine</span>
+            </div>
+            <div class="navbar-right">
+                <button id="themeToggle" class="theme-toggle" aria-label="Toggle theme">
+                    <svg class="sun-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                    <svg class="moon-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                </button>
+            </div>
         </div>
     </nav>
 
     <!-- Main Container -->
-    <div class="container-fluid mt-4">
-        <div class="row">
-            <!-- Sidebar -->
-            <div class="col-md-3 sidebar">
-                <div class="card">
-                    <div class="card-header bg-primary text-white">
-                        <h5 class="mb-0">📊 Portfolio Configuration</h5>
-                    </div>
-                    <div class="card-body">
-                        <!-- Ticker Selection -->
-                        <div class="mb-3">
-                            <label for="tickersInput" class="form-label">Select Tickers</label>
-                            <select class="form-select" id="tickersInput" multiple size="8">
-                                <option value="AAPL" selected>AAPL - Apple</option>
-                                <option value="MSFT" selected>MSFT - Microsoft</option>
-                                <option value="TSLA" selected>TSLA - Tesla</option>
-                                <option value="GOOGL" selected>GOOGL - Google</option>
-                                <option value="AMZN" selected>AMZN - Amazon</option>
-                                <option value="NVDA">NVDA - Nvidia</option>
-                                <option value="META">META - Meta</option>
-                                <option value="NFLX">NFLX - Netflix</option>
-                                <option value="JPM">JPM - JPMorgan</option>
-                                <option value="V">V - Visa</option>
-                                <option value="WMT">WMT - Walmart</option>
-                                <option value="DIS">DIS - Disney</option>
-                                <option value="BTC-USD">BTC-USD - Bitcoin</option>
-                                <option value="ETH-USD">ETH-USD - Ethereum</option>
-                                <option value="GLD">GLD - Gold ETF</option>
-                            </select>
-                            <small class="form-text text-muted">Hold Ctrl/Cmd to select multiple</small>
-                        </div>
-
-                        <!-- Investment Amount -->
-                        <div class="mb-3">
-                            <label for="investmentAmount" class="form-label">Investment Amount ($)</label>
-                            <input type="number" class="form-control" id="investmentAmount" value="100000" min="1000" step="5000">
-                        </div>
-
-                        <!-- Time Period Selector -->
-                        <div class="mb-3">
-                            <label class="form-label">Quick Time Period</label>
-                            <div class="btn-group w-100 mb-2" role="group">
-                                <button type="button" class="btn btn-outline-secondary btn-sm time-period" data-period="1">1M</button>
-                                <button type="button" class="btn btn-outline-secondary btn-sm time-period" data-period="3">3M</button>
-                                <button type="button" class="btn btn-outline-secondary btn-sm time-period" data-period="6">6M</button>
-                                <button type="button" class="btn btn-outline-secondary btn-sm time-period active" data-period="12">1Y</button>
-                            </div>
-                            <div class="btn-group w-100" role="group">
-                                <button type="button" class="btn btn-outline-secondary btn-sm time-period" data-period="24">2Y</button>
-                                <button type="button" class="btn btn-outline-secondary btn-sm time-period" data-period="60">5Y</button>
-                                <button type="button" class="btn btn-outline-secondary btn-sm time-period" data-period="120">10Y</button>
-                            </div>
-                        </div>
-
-                        <!-- Start Date (Custom) -->
-                        <div class="mb-3">
-                            <label for="startDate" class="form-label">Or Custom Start Date</label>
-                            <input type="date" class="form-control" id="startDate">
-                        </div>
-
-                        <!-- Risk Tolerance -->
-                        <div class="mb-3">
-                            <label for="riskTolerance" class="form-label">Risk Tolerance</label>
-                            <select class="form-select" id="riskTolerance">
-                                <option value="conservative">Conservative (Min Risk)</option>
-                                <option value="moderate" selected>Moderate (Balanced)</option>
-                                <option value="aggressive">Aggressive (Max Return)</option>
-                            </select>
-                        </div>
-
-                        <!-- Max Weight Constraint -->
-                        <div class="mb-3">
-                            <label for="maxWeight" class="form-label">Max Weight per Stock: <span id="maxWeightValue">100%</span></label>
-                            <input type="range" class="form-range" id="maxWeight" min="10" max="100" value="100" step="5">
-                            <small class="text-muted">Limit maximum allocation to any single stock</small>
-                        </div>
-
-                        <!-- Refresh Button -->
-                        <button id="refreshBtn" class="btn btn-success w-100 mb-3">
-                            🔄 Refresh Data
-                        </button>
-
-                        <!-- Export Button -->
-                        <button id="exportBtn" class="btn btn-outline-primary w-100 mb-3" disabled>
-                            📥 Export Portfolio (CSV)
-                        </button>
-
-                        <!-- Help Section -->
-                        <div class="accordion" id="helpAccordion">
-                            <div class="accordion-item">
-                                <h2 class="accordion-header">
-                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#helpContent">
-                                        ℹ️ How to Use
-                                    </button>
-                                </h2>
-                                <div id="helpContent" class="accordion-collapse collapse" data-bs-parent="#helpAccordion">
-                                    <div class="accordion-body small">
-                                        <p><strong>Getting Started:</strong></p>
-                                        <ol>
-                                            <li>Select 2+ tickers from the dropdown</li>
-                                            <li>Enter your investment amount</li>
-                                            <li>Choose a start date (1+ year recommended)</li>
-                                            <li>Click 'Refresh Data' to optimize</li>
-                                        </ol>
-                                        <p><strong>Understanding Results:</strong></p>
-                                        <ul>
-                                            <li><strong>Efficient Frontier:</strong> Shows all possible risk/return combinations</li>
-                                            <li><strong>Gold Star ⭐:</strong> Maximum Sharpe Ratio (best risk-adjusted return)</li>
-                                            <li><strong>Blue Diamond 🔷:</strong> Minimum Volatility (lowest risk)</li>
-                                            <li><strong>Sharpe Ratio:</strong> Higher is better (reward per unit of risk)</li>
-                                        </ul>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+    <div class="main-container">
+        <!-- Control Panel -->
+        <div class="control-panel">
+            <div class="control-section">
+                <label class="control-label">Select Assets</label>
+                <div class="ticker-chips" id="tickerChips">
+                    <button class="chip active" data-ticker="AAPL">AAPL</button>
+                    <button class="chip active" data-ticker="MSFT">MSFT</button>
+                    <button class="chip active" data-ticker="TSLA">TSLA</button>
+                    <button class="chip active" data-ticker="GOOGL">GOOGL</button>
+                    <button class="chip active" data-ticker="AMZN">AMZN</button>
+                    <button class="chip" data-ticker="NVDA">NVDA</button>
+                    <button class="chip" data-ticker="META">META</button>
+                    <button class="chip" data-ticker="NFLX">NFLX</button>
+                    <button class="chip" data-ticker="JPM">JPM</button>
+                    <button class="chip" data-ticker="V">V</button>
+                    <button class="chip" data-ticker="WMT">WMT</button>
+                    <button class="chip" data-ticker="DIS">DIS</button>
+                    <button class="chip" data-ticker="BTC-USD">BTC</button>
+                    <button class="chip" data-ticker="ETH-USD">ETH</button>
+                    <button class="chip" data-ticker="GLD">GLD</button>
                 </div>
             </div>
 
-            <!-- Main Content -->
-            <div class="col-md-9">
-                <!-- Loading Overlay -->
-                <div id="loadingOverlay" class="loading-overlay" style="display: none;">
-                    <div class="spinner-border text-primary" role="status">
-                        <span class="visually-hidden">Loading...</span>
+
+            <div class="control-row">
+                <div class="control-section">
+                    <label class="control-label">Investment Amount</label>
+                    <div class="input-group">
+                        <span class="input-prefix">$</span>
+                        <input type="number" id="investmentAmount" value="100000" min="1000" step="5000">
                     </div>
-                    <p class="mt-3">Calculating optimal portfolio...</p>
                 </div>
 
-                <!-- Alert Container -->
-                <div id="alertContainer"></div>
+                <div class="control-section">
+                    <label class="control-label">Time Period</label>
+                    <div class="time-selector">
+                        <button class="time-btn" data-period="1">1M</button>
+                        <button class="time-btn" data-period="3">3M</button>
+                        <button class="time-btn" data-period="6">6M</button>
+                        <button class="time-btn active" data-period="12">1Y</button>
+                        <button class="time-btn" data-period="24">2Y</button>
+                        <button class="time-btn" data-period="60">5Y</button>
+                    </div>
+                </div>
 
-                <!-- Performance Summary Cards -->
-                <div class="row mb-4">
-                    <div class="col-md-4">
-                        <div class="card text-center">
-                            <div class="card-body">
-                                <h6 class="text-muted mb-1">📈 Best Performer</h6>
-                                <h4 id="bestPerformer" class="mb-0 text-success">--</h4>
-                                <small id="bestPerformerGain" class="text-muted">--</small>
-                            </div>
+                <div class="control-section">
+                    <label class="control-label">Strategy</label>
+                    <select id="riskTolerance" class="modern-select">
+                        <option value="conservative">Conservative</option>
+                        <option value="moderate" selected>Balanced</option>
+                        <option value="aggressive">Aggressive</option>
+                    </select>
+                </div>
+
+                <div class="control-section">
+                    <label class="control-label">Max Position <span id="maxWeightValue">100%</span></label>
+                    <input type="range" id="maxWeight" min="10" max="100" value="100" step="5" class="modern-slider">
+                </div>
+            </div>
+
+            <div class="action-bar">
+                <button id="exportBtn" class="btn-secondary" disabled>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                        <polyline points="7 10 12 15 17 10"></polyline>
+                        <line x1="12" y1="15" x2="12" y2="3"></line>
+                    </svg>
+                    Export
+                </button>
+                <div class="status-indicator" id="statusIndicator">
+                    <span class="status-dot"></span>
+                    <span class="status-text">Ready</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Results Section -->
+        <div class="results-container">
+            <!-- Loading Overlay -->
+            <div id="loadingOverlay" class="loading-overlay" style="display: none;">
+                <div class="spinner"></div>
+                <p>Optimizing portfolio...</p>
+            </div>
+
+            <!-- Alert Container -->
+            <div id="alertContainer"></div>
+
+            <!-- Metrics Overview -->
+            <div class="metrics-grid">
+                <div class="metric-card">
+                    <div class="metric-label">Best Performer</div>
+                    <div class="metric-value success" id="bestPerformer">--</div>
+                    <div class="metric-sub" id="bestPerformerGain">--</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-label">Expected Return</div>
+                    <div class="metric-value" id="portfolioReturn">--</div>
+                    <div class="metric-sub">Annualized</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-label">Sharpe Ratio</div>
+                    <div class="metric-value" id="sharpeMetric">--</div>
+                    <div class="metric-sub">Risk-adjusted</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-label">Volatility</div>
+                    <div class="metric-value" id="volatilityMetric">--</div>
+                    <div class="metric-sub">Annual std. dev</div>
+                </div>
+            </div>
+
+            <!-- Charts Grid -->
+            <div class="charts-section">
+                <div class="chart-panel">
+                    <h3 class="section-title">Price Performance</h3>
+                    <div id="normalizedPriceChart" class="chart-area"></div>
+                </div>
+
+                <div class="chart-panel">
+                    <h3 class="section-title">Portfolio Growth</h3>
+                    <div id="backtestChart" class="chart-area"></div>
+                </div>
+
+                <div class="chart-row">
+                    <div class="chart-panel-half">
+                        <h3 class="section-title">Efficient Frontier</h3>
+                        <div id="efficientFrontierChart" class="chart-area"></div>
+                        <div id="emptyState" class="empty-state">
+                            <p>Select assets to optimize your portfolio</p>
                         </div>
                     </div>
-                    <div class="col-md-4">
-                        <div class="card text-center">
-                            <div class="card-body">
-                                <h6 class="text-muted mb-1">📊 Portfolio Return</h6>
-                                <h4 id="portfolioReturn" class="mb-0">--</h4>
-                                <small class="text-muted">Optimized allocation</small>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="card text-center">
-                            <div class="card-body">
-                                <h6 class="text-muted mb-1">📉 Worst Performer</h6>
-                                <h4 id="worstPerformer" class="mb-0 text-danger">--</h4>
-                                <small id="worstPerformerLoss" class="text-muted">--</small>
-                            </div>
-                        </div>
+
+                    <div class="chart-panel-half">
+                        <h3 class="section-title">Portfolio Allocation</h3>
+                        <div id="allocationChart" class="chart-area"></div>
                     </div>
                 </div>
 
-                <!-- Normalized Price Chart -->
-                <div class="card mb-4">
-                    <div class="card-header">
-                        <h5 class="mb-0">📊 Normalized Price Performance</h5>
-                    </div>
-                    <div class="card-body">
-                        <div id="normalizedPriceChart" class="chart-container"></div>
-                    </div>
+                <div class="chart-panel">
+                    <h3 class="section-title">Correlation Matrix</h3>
+                    <div id="correlationHeatmap" class="chart-area"></div>
                 </div>
 
-                <!-- Historical Backtest Chart -->
-                <div class="card mb-4">
-                    <div class="card-header">
-                        <h5 class="mb-0">💰 Portfolio Growth Backtest</h5>
-                    </div>
-                    <div class="card-body">
-                        <div id="backtestChart" class="chart-container"></div>
-                    </div>
-                </div>
-
-                <!-- Efficient Frontier Chart -->
-                <div class="card mb-4">
-                    <div class="card-header">
-                        <h5 class="mb-0">📈 Efficient Frontier Analysis</h5>
-                    </div>
-                    <div class="card-body">
-                        <div id="efficientFrontierChart" class="chart-container"></div>
-                        <div id="emptyState" class="text-center text-muted py-5">
-                            <h5>Select tickers and click Refresh to get started</h5>
-                            <p>The Efficient Frontier will appear here</p>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Portfolio Allocation -->
-                <div class="card mb-4">
-                    <div class="card-header">
-                        <h5 class="mb-0">🎯 Optimal Portfolio Allocation</h5>
-                    </div>
-                    <div class="card-body">
-                        <div class="row">
-                            <!-- Allocation Chart -->
-                            <div class="col-md-6">
-                                <h6>Portfolio Breakdown</h6>
-                                <div id="allocationChart" class="chart-container"></div>
-                            </div>
-
-                            <!-- Performance Metrics -->
-                            <div class="col-md-6">
-                                <h6>Performance Metrics</h6>
-                                <div id="metricsCards" class="metrics-container">
-                                    <div class="card mb-2">
-                                        <div class="card-body text-center">
-                                            <small class="text-muted">Expected Annual Return</small>
-                                            <h4 id="returnMetric" class="mb-0">--</h4>
-                                        </div>
-                                    </div>
-                                    <div class="card mb-2">
-                                        <div class="card-body text-center">
-                                            <small class="text-muted">Annual Volatility</small>
-                                            <h4 id="volatilityMetric" class="mb-0">--</h4>
-                                        </div>
-                                    </div>
-                                    <div class="card mb-2">
-                                        <div class="card-body text-center">
-                                            <small class="text-muted">Sharpe Ratio</small>
-                                            <h4 id="sharpeMetric" class="mb-0">--</h4>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Correlation Heatmap -->
-                <div class="card mb-4">
-                    <div class="card-header">
-                        <h5 class="mb-0">🔗 Stock Correlation Matrix</h5>
-                    </div>
-                    <div class="card-body">
-                        <div id="correlationHeatmap" class="chart-container"></div>
-                    </div>
-                </div>
-
-                <!-- Raw Market Data -->
-                <div class="card">
-                    <div class="card-header">
-                        <h5 class="mb-0">📊 Raw Market Data</h5>
-                    </div>
-                    <div class="card-body">
-                        <div id="marketDataTable" class="table-responsive"></div>
-                    </div>
-                </div>
+                <!-- Data Table (Collapsible) -->
+                <details class="data-details">
+                    <summary class="data-summary">Raw Market Data</summary>
+                    <div id="marketDataTable" class="data-table"></div>
+                </details>
             </div>
         </div>
     </div>
 
-    <!-- Footer -->
-    <footer class="footer mt-5 py-3 bg-light">
-        <div class="container-fluid text-center text-muted">
-            <small>Built with FastAPI | Data from Yahoo Finance | Powered by PyPortfolioOpt</small>
-        </div>
-    </footer>
-
-    <!-- Bootstrap JS Bundle -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-
-    <!-- Plotly.js - Using jsDelivr CDN for better reliability -->
+    <!-- Plotly.js -->
     <script src="https://cdn.jsdelivr.net/npm/plotly.js-dist@2.26.0/plotly.min.js"></script>
 
     <!-- Custom Scripts -->
