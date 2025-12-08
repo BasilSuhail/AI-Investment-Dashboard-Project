@@ -281,7 +281,13 @@ async function optimizePortfolio() {
 
     } catch (error) {
         console.error('Error:', error);
-        alert('Failed to optimize portfolio. Please try again.');
+
+        // Check if it's a specific optimization error (422 = Unprocessable Entity)
+        if (error.status === 422) {
+            alert('Unable to optimize this combination of assets. This typically happens when the selected assets have very low expected returns.\n\nPlease try:\n• Adding more stocks to your portfolio\n• Selecting different assets\n• Using a different time period\n\nNote: This is a limitation of mock data. Real market data will work better.');
+        } else {
+            alert('Failed to optimize portfolio. Please check your selections and try again.');
+        }
     } finally {
         document.getElementById('loadingOverlay').style.display = 'none';
     }

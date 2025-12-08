@@ -81,7 +81,9 @@ async function getEfficientFrontier(requestBody) {
 
         if (!response.ok) {
             const error = await response.json();
-            throw new Error(error.detail || 'Failed to calculate efficient frontier');
+            const errorObj = new Error(error.detail || 'Failed to calculate efficient frontier');
+            errorObj.status = response.status;
+            throw errorObj;
         }
 
         return await response.json();
