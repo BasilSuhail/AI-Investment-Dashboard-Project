@@ -46,23 +46,106 @@
         <div class="control-panel">
             <div class="control-section">
                 <label class="control-label">Select Assets</label>
-                <div class="ticker-chips" id="tickerChips">
-                    <button class="chip active" data-ticker="AAPL">AAPL</button>
-                    <button class="chip active" data-ticker="MSFT">MSFT</button>
-                    <button class="chip active" data-ticker="TSLA">TSLA</button>
-                    <button class="chip active" data-ticker="GOOGL">GOOGL</button>
-                    <button class="chip active" data-ticker="AMZN">AMZN</button>
-                    <button class="chip" data-ticker="NVDA">NVDA</button>
-                    <button class="chip" data-ticker="META">META</button>
-                    <button class="chip" data-ticker="NFLX">NFLX</button>
-                    <button class="chip" data-ticker="JPM">JPM</button>
-                    <button class="chip" data-ticker="V">V</button>
-                    <button class="chip" data-ticker="WMT">WMT</button>
-                    <button class="chip" data-ticker="DIS">DIS</button>
-                    <button class="chip" data-ticker="BTC-USD">BTC</button>
-                    <button class="chip" data-ticker="ETH-USD">ETH</button>
-                    <button class="chip" data-ticker="GLD">GLD</button>
+
+                <!-- Dropdown Button -->
+                <div class="asset-selector">
+                    <button class="dropdown-trigger" id="assetDropdownBtn">
+                        <span>Add Assets</span>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="6 9 12 15 18 9"></polyline>
+                        </svg>
+                    </button>
+
+                    <!-- Dropdown Panel -->
+                    <div class="dropdown-panel" id="assetDropdown" style="display: none;">
+                        <div class="dropdown-header">
+                            <input type="text" id="assetSearch" class="search-input" placeholder="Search assets...">
+                        </div>
+                        <div class="dropdown-list" id="assetList">
+                            <label class="asset-option">
+                                <input type="checkbox" value="AAPL" checked>
+                                <span class="asset-ticker">AAPL</span>
+                                <span class="asset-name">Apple Inc.</span>
+                            </label>
+                            <label class="asset-option">
+                                <input type="checkbox" value="MSFT" checked>
+                                <span class="asset-ticker">MSFT</span>
+                                <span class="asset-name">Microsoft</span>
+                            </label>
+                            <label class="asset-option">
+                                <input type="checkbox" value="TSLA" checked>
+                                <span class="asset-ticker">TSLA</span>
+                                <span class="asset-name">Tesla</span>
+                            </label>
+                            <label class="asset-option">
+                                <input type="checkbox" value="GOOGL" checked>
+                                <span class="asset-ticker">GOOGL</span>
+                                <span class="asset-name">Alphabet (Google)</span>
+                            </label>
+                            <label class="asset-option">
+                                <input type="checkbox" value="AMZN" checked>
+                                <span class="asset-ticker">AMZN</span>
+                                <span class="asset-name">Amazon</span>
+                            </label>
+                            <label class="asset-option">
+                                <input type="checkbox" value="NVDA">
+                                <span class="asset-ticker">NVDA</span>
+                                <span class="asset-name">Nvidia</span>
+                            </label>
+                            <label class="asset-option">
+                                <input type="checkbox" value="META">
+                                <span class="asset-ticker">META</span>
+                                <span class="asset-name">Meta (Facebook)</span>
+                            </label>
+                            <label class="asset-option">
+                                <input type="checkbox" value="NFLX">
+                                <span class="asset-ticker">NFLX</span>
+                                <span class="asset-name">Netflix</span>
+                            </label>
+                            <label class="asset-option">
+                                <input type="checkbox" value="JPM">
+                                <span class="asset-ticker">JPM</span>
+                                <span class="asset-name">JPMorgan Chase</span>
+                            </label>
+                            <label class="asset-option">
+                                <input type="checkbox" value="V">
+                                <span class="asset-ticker">V</span>
+                                <span class="asset-name">Visa</span>
+                            </label>
+                            <label class="asset-option">
+                                <input type="checkbox" value="WMT">
+                                <span class="asset-ticker">WMT</span>
+                                <span class="asset-name">Walmart</span>
+                            </label>
+                            <label class="asset-option">
+                                <input type="checkbox" value="DIS">
+                                <span class="asset-ticker">DIS</span>
+                                <span class="asset-name">Disney</span>
+                            </label>
+                            <label class="asset-option">
+                                <input type="checkbox" value="BTC-USD">
+                                <span class="asset-ticker">BTC-USD</span>
+                                <span class="asset-name">Bitcoin</span>
+                            </label>
+                            <label class="asset-option">
+                                <input type="checkbox" value="ETH-USD">
+                                <span class="asset-ticker">ETH-USD</span>
+                                <span class="asset-name">Ethereum</span>
+                            </label>
+                            <label class="asset-option">
+                                <input type="checkbox" value="GLD">
+                                <span class="asset-ticker">GLD</span>
+                                <span class="asset-name">Gold ETF</span>
+                            </label>
+                        </div>
+                        <div class="dropdown-footer">
+                            <button class="btn-done" id="doneBtn">Done</button>
+                        </div>
+                    </div>
                 </div>
+
+                <!-- Selected Chips -->
+                <div class="ticker-chips" id="tickerChips"></div>
             </div>
 
 
