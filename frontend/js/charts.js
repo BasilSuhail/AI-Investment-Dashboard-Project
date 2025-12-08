@@ -39,9 +39,6 @@ function getThemeColors() {
 function renderEfficientFrontier(data) {
     const { simulated_portfolios, optimal_portfolios } = data;
 
-    // Hide empty state
-    document.getElementById('emptyState').style.display = 'none';
-
     // Simulated portfolios trace
     const simulatedTrace = {
         x: simulated_portfolios.volatilities,
@@ -137,15 +134,22 @@ function renderEfficientFrontier(data) {
         displaylogo: false
     };
 
-    Plotly.newPlot('efficientFrontierChart', [simulatedTrace, maxSharpeTrace, minVolTrace], layout, config);
+    Plotly.newPlot('frontierChart', [simulatedTrace, maxSharpeTrace, minVolTrace], layout, config);
 }
 
 /**
  * Render portfolio allocation donut chart
- * @param {Object} weights - Portfolio weights
- * @param {Object} allocations - Dollar allocations
+ * @param {Object} frontierData - Frontier data
+ * @param {string} optimizationType - Type of optimization
  */
-function renderAllocationChart(weights, allocations) {
+function renderAllocationChart(frontierData, optimizationType) {
+    const portfolio = optimizationType === 'min_volatility'
+        ? frontierData.optimal_portfolios.min_volatility
+        : frontierData.optimal_portfolios.max_sharpe;
+
+    const weights = portfolio.weights;
+    const allocations = portfolio.allocations;
+
     // Filter out zero weights
     const labels = [];
     const values = [];
@@ -278,19 +282,26 @@ function renderNormalizedPrices(stockData) {
         displaylogo: false
     };
 
-    Plotly.newPlot('normalizedPriceChart', traces, layout, config);
+    Plotly.newPlot('normalizedChart', traces, layout, config);
 }
 
 /**
  * Render backtest chart showing portfolio growth
  * @param {Object} stockData - Historical stock data
- * @param {Object} weights - Portfolio weights
+ * @param {Object} frontierData - Frontier data
+ * @param {string} optimizationType - Type of optimization
  * @param {number} initialInvestment - Starting investment amount
  */
-function renderBacktestChart(stockData, weights, initialInvestment) {
+function renderBacktestChart(stockData, frontierData, optimizationType, initialInvestment) {
     if (!stockData || !stockData.dates || stockData.dates.length === 0) {
         return;
     }
+
+    const portfolio = optimizationType === 'min_volatility'
+        ? frontierData.optimal_portfolios.min_volatility
+        : frontierData.optimal_portfolios.max_sharpe;
+
+    const weights = portfolio.weights;
 
     // Calculate portfolio value over time
     const portfolioValues = [];
@@ -366,11 +377,7 @@ function renderBacktestChart(stockData, weights, initialInvestment) {
         displaylogo: false
     };
 
-    Plotly.newPlot('backtestChart', [trace], layout, config);
-
-    // Update portfolio return card
-    document.getElementById('portfolioReturn').textContent = `${totalReturn >= 0 ? '+' : ''}${totalReturn.toFixed(2)}%`;
-    document.getElementById('portfolioReturn').className = `mb-0 ${totalReturn >= 0 ? 'text-success' : 'text-danger'}`;
+    Plotly.newPlot('portfolioChart', [trace], layout, config);
 }
 
 /**
@@ -440,7 +447,7 @@ function renderCorrelationHeatmap(stockData) {
         displayModeBar: false
     };
 
-    Plotly.newPlot('correlationHeatmap', [trace], layout, config);
+    Plotly.newPlot('correlationChart', [trace], layout, config);
 }
 
 /**

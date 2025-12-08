@@ -31,6 +31,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initializeStockChips();
     initializeDropdown();
     initializeControls();
+    initializeThemeToggle();
     renderChips();
 });
 
@@ -169,8 +170,17 @@ function updateDropdownCheckboxes() {
 function initializeControls() {
     // Time horizon dropdown
     const timeHorizon = document.getElementById('timeHorizon');
+    const customDateGroup = document.getElementById('customDateGroup');
+
     timeHorizon.addEventListener('change', () => {
-        selectedMonths = parseInt(timeHorizon.value);
+        const value = timeHorizon.value;
+        if (value === 'custom') {
+            customDateGroup.style.display = 'block';
+            selectedMonths = null;
+        } else {
+            customDateGroup.style.display = 'none';
+            selectedMonths = parseInt(value);
+        }
     });
 
     // Optimize button
@@ -193,11 +203,22 @@ async function optimizePortfolio() {
 
     try {
         // Calculate start date
-        const endDate = new Date();
-        const startDate = new Date();
-        startDate.setMonth(startDate.getMonth() - selectedMonths);
-
-        const startDateStr = startDate.toISOString().split('T')[0];
+        let startDateStr;
+        if (selectedMonths === null) {
+            // Use custom date
+            const customDate = document.getElementById('startDate').value;
+            if (!customDate) {
+                alert('Please select a start date');
+                document.getElementById('loadingOverlay').style.display = 'none';
+                return;
+            }
+            startDateStr = customDate;
+        } else {
+            // Calculate from months
+            const startDate = new Date();
+            startDate.setMonth(startDate.getMonth() - selectedMonths);
+            startDateStr = startDate.toISOString().split('T')[0];
+        }
         const investmentAmount = parseFloat(document.getElementById('investmentAmount').value) || 100000;
         const riskTolerance = document.getElementById('riskTolerance').value;
 
@@ -312,4 +333,43 @@ function renderMetrics(stockData, frontierData, optimizationType) {
  */
 function formatPercentage(value, decimals = 2) {
     return (value * 100).toFixed(decimals) + '%';
+}
+
+/**
+ * Initialize theme toggle
+ */
+function initializeThemeToggle() {
+    const themeToggle = document.getElementById('themeToggle');
+    const themeIcon = themeToggle.querySelector('.theme-icon');
+
+    // Load saved theme or default to dark
+    const savedTheme = localStorage.getItem('theme') || 'dark';
+    document.documentElement.setAttribute('data-theme', savedTheme);
+    updateThemeIcon(savedTheme, themeIcon);
+
+    themeToggle.addEventListener('click', () => {
+        const currentTheme = document.documentElement.getAttribute('data-theme');
+        const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+
+        document.documentElement.setAttribute('data-theme', newTheme);
+        localStorage.setItem('theme', newTheme);
+        updateThemeIcon(newTheme, themeIcon);
+
+        // Re-render charts with new theme
+        if (currentData) {
+            renderNormalizedPrices(currentData.stockData);
+            renderBacktestChart(currentData.stockData, currentData.frontierData,
+                currentData.requestBody.optimization_type, currentData.requestBody.investment_amount);
+            renderEfficientFrontier(currentData.frontierData);
+            renderAllocationChart(currentData.frontierData, currentData.requestBody.optimization_type);
+            renderCorrelationHeatmap(currentData.stockData);
+        }
+    });
+}
+
+/**
+ * Update theme icon
+ */
+function updateThemeIcon(theme, iconElement) {
+    iconElement.textContent = theme === 'dark' ? '☀️' : '🌙';
 }

@@ -10,7 +10,12 @@
     <div class="app-container">
         <!-- Sidebar -->
         <aside class="sidebar">
-            <h2 class="sidebar-title">Stock Selection</h2>
+            <div class="sidebar-header">
+                <h2 class="sidebar-title">Stock Selection</h2>
+                <button class="theme-toggle" id="themeToggle" title="Toggle theme">
+                    <span class="theme-icon">☀️</span>
+                </button>
+            </div>
 
             <!-- Stock Chips -->
             <div class="stock-chips" id="stockChips"></div>
@@ -35,7 +40,16 @@
                     <option value="24">2 Years</option>
                     <option value="60">5 Years</option>
                     <option value="120">10 Years</option>
+                    <option value="custom">Custom Date Range</option>
                 </select>
+            </div>
+
+            <!-- Custom Date Range (Hidden by default) -->
+            <div class="control-group" id="customDateGroup" style="display: none;">
+                <label class="control-label">Start Date</label>
+                <input type="date" class="input-field" id="startDate">
+                <label class="control-label" style="margin-top: 0.5rem;">End Date</label>
+                <input type="date" class="input-field" id="endDate">
             </div>
 
             <!-- Investment Amount -->
@@ -52,15 +66,6 @@
                     <option value="moderate" selected>Moderate</option>
                     <option value="aggressive">Aggressive</option>
                 </select>
-            </div>
-
-            <!-- Custom Date Range -->
-            <div class="control-group">
-                <label class="control-label">Custom Date Range (Optional)</label>
-                <div class="date-inputs">
-                    <input type="date" class="input-field" id="startDate" placeholder="Start Date">
-                    <input type="date" class="input-field" id="endDate" placeholder="End Date">
-                </div>
             </div>
 
             <!-- Optimize Button -->
