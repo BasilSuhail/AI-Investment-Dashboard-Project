@@ -35,25 +35,36 @@ body {
 
 /* App Container */
 .app-container {
-    display: grid;
-    grid-template-columns: 350px 1fr;
+    display: flex;
     min-height: 100vh;
-    gap: 0;
+    padding: 2rem;
+    gap: 2rem;
 }
 
-/* Sidebar */
+/* Sidebar - Floating Card */
 .sidebar {
+    width: 320px;
     background-color: var(--bg-sidebar);
     padding: 2rem 1.5rem;
-    border-right: 1px solid rgba(56, 57, 63, 0.3);
+    border-radius: 16px;
+    border: 1px solid rgba(56, 57, 63, 0.2);
+    position: sticky;
+    top: 2rem;
+    height: fit-content;
+    max-height: calc(100vh - 4rem);
     overflow-y: auto;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    flex-shrink: 0;
 }
 
 .sidebar-title {
-    font-size: 1.25rem;
+    font-size: 1.125rem;
     font-weight: 600;
-    margin-bottom: 1.5rem;
+    margin-bottom: 2rem;
     color: var(--text-primary);
+    letter-spacing: -0.02em;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid rgba(56, 57, 63, 0.2);
 }
 
 /* Stock Chips */
@@ -245,6 +256,21 @@ body {
     border-color: var(--chip-purple);
 }
 
+/* Date Inputs */
+.date-inputs {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.date-inputs .input-field {
+    flex: 1;
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator {
+    filter: invert(1);
+    cursor: pointer;
+}
+
 /* Optimize Button */
 .optimize-btn {
     width: 100%;
@@ -267,9 +293,9 @@ body {
 
 /* Main Content */
 .main-content {
-    padding: 2rem;
-    overflow-y: auto;
+    flex: 1;
     position: relative;
+    overflow-y: visible;
 }
 
 /* Loading Overlay */
@@ -411,16 +437,19 @@ body {
 /* Responsive */
 @media (max-width: 1200px) {
     .app-container {
-        grid-template-columns: 1fr;
+        flex-direction: column;
     }
 
     .sidebar {
-        border-right: none;
-        border-bottom: 1px solid var(--border);
+        width: 100%;
+        position: relative;
+        top: 0;
+        max-height: none;
     }
 
     .metrics-row {
-        grid-template-columns: repeat(2, 1fr);
+        flex-direction: column;
+        gap: 1.5rem;
     }
 
     .chart-grid {
@@ -429,11 +458,15 @@ body {
 }
 
 @media (max-width: 768px) {
-    .metrics-row {
-        grid-template-columns: 1fr;
+    .app-container {
+        padding: 1rem;
     }
 
     .pill-buttons {
         grid-template-columns: 1fr;
+    }
+
+    .date-inputs {
+        flex-direction: column;
     }
 }

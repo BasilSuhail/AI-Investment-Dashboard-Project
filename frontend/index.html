@@ -27,14 +27,15 @@
             <!-- Time Horizon -->
             <div class="control-group">
                 <label class="control-label">Time Horizon</label>
-                <div class="pill-buttons">
-                    <button class="pill-btn" data-months="1">1 Month</button>
-                    <button class="pill-btn" data-months="3">3 Months</button>
-                    <button class="pill-btn" data-months="6">6 Months</button>
-                    <button class="pill-btn pill-btn-active" data-months="12">1 Year</button>
-                    <button class="pill-btn" data-months="60">5 Years</button>
-                    <button class="pill-btn" data-months="120">10 Years</button>
-                </div>
+                <select class="select-field" id="timeHorizon">
+                    <option value="1">1 Month</option>
+                    <option value="3">3 Months</option>
+                    <option value="6">6 Months</option>
+                    <option value="12" selected>1 Year</option>
+                    <option value="24">2 Years</option>
+                    <option value="60">5 Years</option>
+                    <option value="120">10 Years</option>
+                </select>
             </div>
 
             <!-- Investment Amount -->
@@ -51,6 +52,15 @@
                     <option value="moderate" selected>Moderate</option>
                     <option value="aggressive">Aggressive</option>
                 </select>
+            </div>
+
+            <!-- Custom Date Range -->
+            <div class="control-group">
+                <label class="control-label">Custom Date Range (Optional)</label>
+                <div class="date-inputs">
+                    <input type="date" class="input-field" id="startDate" placeholder="Start Date">
+                    <input type="date" class="input-field" id="endDate" placeholder="End Date">
+                </div>
             </div>
 
             <!-- Optimize Button -->
