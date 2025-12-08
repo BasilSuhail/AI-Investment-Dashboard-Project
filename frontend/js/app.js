@@ -32,6 +32,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initializeDropdown();
     initializeControls();
     initializeThemeToggle();
+    initializeExportButtons();
     renderChips();
 });
 
@@ -247,6 +248,16 @@ async function optimizePortfolio() {
         const frontierData = await getEfficientFrontier(requestBody);
         console.log('Frontier data:', frontierData);
 
+        // Fetch SPY data if comparison is enabled
+        let spyData = null;
+        if (compareSP500) {
+            try {
+                spyData = await fetchStockData(['SPY'], startDateStr);
+            } catch (e) {
+                console.warn('Failed to fetch SPY data:', e);
+            }
+        }
+
         // Store data
         currentData = {
             stockData,
@@ -258,22 +269,15 @@ async function optimizePortfolio() {
         // Render metrics
         renderMetrics(stockData, frontierData, optimizationType);
 
-        // Fetch SPY data if comparison is enabled
-        let spyData = null;
-        if (compareSP500) {
-            try {
-                spyData = await fetchStockData(['SPY'], startDateStr);
-            } catch (e) {
-                console.warn('Failed to fetch SPY data:', e);
-            }
-        }
-
         // Render charts
         renderNormalizedPrices(stockData);
         renderBacktestChart(stockData, frontierData, optimizationType, investmentAmount, spyData);
         renderEfficientFrontier(frontierData);
         renderAllocationChart(frontierData, optimizationType);
         renderCorrelationHeatmap(stockData);
+
+        // Show export buttons
+        document.getElementById('exportButtons').style.display = 'flex';
 
     } catch (error) {
         console.error('Error:', error);
@@ -406,4 +410,181 @@ function initializeThemeToggle() {
  */
 function updateThemeIcon(theme, iconElement) {
     iconElement.textContent = theme === 'dark' ? '☀️' : '🌙';
+}
+
+/**
+ * Initialize export buttons
+ */
+function initializeExportButtons() {
+    document.getElementById('exportCSV').addEventListener('click', () => {
+        exportAllocationCSV();
+    });
+
+    document.getElementById('exportTXT').addEventListener('click', () => {
+        exportPerformanceReport();
+    });
+}
+
+/**
+ * Export portfolio allocation as CSV
+ */
+function exportAllocationCSV() {
+    if (!currentData || !currentData.frontierData) {
+        alert('No portfolio data available. Please optimize a portfolio first.');
+        return;
+    }
+
+    const { frontierData, requestBody } = currentData;
+    const optimizationType = requestBody.optimization_type;
+    const portfolio = optimizationType === 'min_volatility'
+        ? frontierData.optimal_portfolios.min_volatility
+        : frontierData.optimal_portfolios.max_sharpe;
+
+    // Create CSV content
+    let csv = 'Ticker,Weight (%),Dollar Allocation ($)\n';
+
+    for (const [ticker, weight] of Object.entries(portfolio.weights)) {
+        if (weight > 0.001) {
+            const weightPercent = (weight * 100).toFixed(2);
+            const allocation = portfolio.allocations[ticker].toFixed(2);
+            csv += `${ticker},${weightPercent},${allocation}\n`;
+        }
+    }
+
+    // Add summary
+    csv += '\nPortfolio Summary\n';
+    csv += `Expected Return,${(portfolio.performance.expected_return * 100).toFixed(2)}%\n`;
+    csv += `Volatility,${(portfolio.performance.volatility * 100).toFixed(2)}%\n`;
+    csv += `Sharpe Ratio,${portfolio.performance.sharpe_ratio.toFixed(2)}\n`;
+    csv += `Total Investment,$${requestBody.investment_amount.toFixed(2)}\n`;
+
+    // Download file
+    downloadFile(csv, 'portfolio_allocation.csv', 'text/csv');
+}
+
+/**
+ * Export performance report as TXT
+ */
+function exportPerformanceReport() {
+    if (!currentData || !currentData.frontierData) {
+        alert('No portfolio data available. Please optimize a portfolio first.');
+        return;
+    }
+
+    const { stockData, frontierData, requestBody } = currentData;
+    const optimizationType = requestBody.optimization_type;
+    const portfolio = optimizationType === 'min_volatility'
+        ? frontierData.optimal_portfolios.min_volatility
+        : frontierData.optimal_portfolios.max_sharpe;
+
+    // Calculate best/worst performers
+    const tickers = stockData.tickers;
+    const prices = stockData.prices;
+    const returns = {};
+
+    for (const ticker of tickers) {
+        const priceData = prices[ticker];
+        if (priceData && priceData.length > 0) {
+            const startPrice = priceData[0];
+            const endPrice = priceData[priceData.length - 1];
+            returns[ticker] = ((endPrice - startPrice) / startPrice);
+        }
+    }
+
+    let bestTicker = null;
+    let bestReturn = -Infinity;
+    let worstTicker = null;
+    let worstReturn = Infinity;
+
+    for (const [ticker, returnVal] of Object.entries(returns)) {
+        if (returnVal > bestReturn) {
+            bestReturn = returnVal;
+            bestTicker = ticker;
+        }
+        if (returnVal < worstReturn) {
+            worstReturn = returnVal;
+            worstTicker = ticker;
+        }
+    }
+
+    // Create report
+    const date = new Date().toLocaleDateString();
+    let report = '';
+    report += '═══════════════════════════════════════════════════════\n';
+    report += '           PORTFOLIO OPTIMIZATION REPORT\n';
+    report += '═══════════════════════════════════════════════════════\n';
+    report += `Generated: ${date}\n\n`;
+
+    report += '-----------------------------------------------------------\n';
+    report += 'PORTFOLIO ALLOCATION\n';
+    report += '-----------------------------------------------------------\n';
+    for (const [ticker, weight] of Object.entries(portfolio.weights)) {
+        if (weight > 0.001) {
+            const weightPercent = (weight * 100).toFixed(2);
+            const allocation = portfolio.allocations[ticker].toFixed(2);
+            report += `${ticker.padEnd(10)} ${weightPercent.padStart(6)}%    $${allocation.padStart(12)}\n`;
+        }
+    }
+    report += '\n';
+
+    report += '-----------------------------------------------------------\n';
+    report += 'PERFORMANCE METRICS\n';
+    report += '-----------------------------------------------------------\n';
+    report += `Expected Annual Return:  ${(portfolio.performance.expected_return * 100).toFixed(2)}%\n`;
+    report += `Annual Volatility:       ${(portfolio.performance.volatility * 100).toFixed(2)}%\n`;
+    report += `Sharpe Ratio:            ${portfolio.performance.sharpe_ratio.toFixed(2)}\n`;
+    report += `Optimization Strategy:   ${optimizationType === 'min_volatility' ? 'Minimum Volatility' : 'Maximum Sharpe Ratio'}\n`;
+    report += `Total Investment:        $${requestBody.investment_amount.toLocaleString()}\n`;
+    report += '\n';
+
+    report += '-----------------------------------------------------------\n';
+    report += 'INDIVIDUAL STOCK PERFORMANCE\n';
+    report += '-----------------------------------------------------------\n';
+    if (bestTicker) {
+        report += `Best Performer:          ${bestTicker} (+${(bestReturn * 100).toFixed(2)}%)\n`;
+    }
+    if (worstTicker) {
+        report += `Worst Performer:         ${worstTicker} (${(worstReturn * 100).toFixed(2)}%)\n`;
+    }
+    report += '\n';
+
+    // Add S&P 500 comparison if available
+    if (frontierData.benchmark) {
+        report += '-----------------------------------------------------------\n';
+        report += 'S&P 500 BENCHMARK COMPARISON\n';
+        report += '-----------------------------------------------------------\n';
+        report += `S&P 500 Return:          ${(frontierData.benchmark.annualized_return * 100).toFixed(2)}%\n`;
+        report += `Portfolio vs S&P 500:    ${frontierData.benchmark.outperformance >= 0 ? '+' : ''}${(frontierData.benchmark.outperformance * 100).toFixed(2)}%\n`;
+        report += '\n';
+    }
+
+    report += '-----------------------------------------------------------\n';
+    report += 'ANALYSIS PERIOD\n';
+    report += '-----------------------------------------------------------\n';
+    report += `Start Date:              ${requestBody.start_date}\n`;
+    report += `Number of Assets:        ${requestBody.tickers.length}\n`;
+    report += `Assets:                  ${requestBody.tickers.join(', ')}\n`;
+    report += '\n';
+
+    report += '═══════════════════════════════════════════════════════\n';
+    report += 'Generated by Portfolio Optimizer\n';
+    report += '═══════════════════════════════════════════════════════\n';
+
+    // Download file
+    downloadFile(report, 'portfolio_report.txt', 'text/plain');
+}
+
+/**
+ * Helper function to download a file
+ */
+function downloadFile(content, filename, mimeType) {
+    const blob = new Blob([content], { type: mimeType });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
 }

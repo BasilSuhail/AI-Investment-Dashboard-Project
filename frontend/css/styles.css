@@ -540,6 +540,37 @@ input[type="date"]::-webkit-calendar-picker-indicator {
     min-height: 380px;
 }
 
+/* Export Buttons */
+.export-buttons {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1.5rem;
+    justify-content: center;
+}
+
+.export-btn {
+    padding: 0.625rem 1.25rem;
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text-primary);
+    font-size: 0.8125rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    letter-spacing: 0.01em;
+}
+
+.export-btn:hover {
+    border-color: var(--accent-primary);
+    color: var(--accent-primary);
+    background: var(--accent-glow);
+}
+
+.export-btn:active {
+    transform: scale(0.98);
+}
+
 /* Scrollbar */
 ::-webkit-scrollbar {
     width: 10px;
