@@ -36,3 +36,6 @@ logs/
 # Cache
 .cache/
 *.cache
+
+# Roadmap and planning docs
+roadmap*.md

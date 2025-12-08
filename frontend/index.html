@@ -68,6 +68,14 @@
                 </select>
             </div>
 
+            <!-- S&P 500 Comparison -->
+            <div class="control-group">
+                <label class="checkbox-label">
+                    <input type="checkbox" id="compareSP500" checked>
+                    <span>Compare to S&P 500</span>
+                </label>
+            </div>
+
             <!-- Optimize Button -->
             <button class="optimize-btn" id="optimizeBtn">Optimize Portfolio</button>
         </aside>
@@ -99,6 +107,10 @@
                 <div class="metric-card">
                     <div class="metric-label">Sharpe Ratio</div>
                     <div class="metric-value" id="sharpeRatio">--</div>
+                </div>
+                <div class="metric-card" id="sp500Card" style="display: none;">
+                    <div class="metric-label">vs S&P 500</div>
+                    <div class="metric-value" id="sp500Comparison">--</div>
                 </div>
             </div>
 

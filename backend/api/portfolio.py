@@ -32,6 +32,7 @@ class OptimizationRequest(BaseModel):
     optimization_type: str = "max_sharpe"  # "max_sharpe" | "min_volatility" | "efficient_risk"
     target_volatility: Optional[float] = None
     max_weight: Optional[float] = 1.0  # Maximum weight per asset (1.0 = 100%)
+    compare_sp500: Optional[bool] = False  # Whether to include S&P 500 benchmark comparison
 
 
 # Response Models
@@ -62,10 +63,19 @@ class OptimalPortfolios(BaseModel):
     min_volatility: OptimizationResponse
 
 
+class BenchmarkPerformance(BaseModel):
+    """S&P 500 benchmark performance"""
+    total_return: float
+    annualized_return: float
+    volatility: float
+    outperformance: float  # Portfolio return - benchmark return
+
+
 class EfficientFrontierResponse(BaseModel):
     """Response model for efficient frontier data"""
     simulated_portfolios: SimulatedPortfolios
     optimal_portfolios: OptimalPortfolios
+    benchmark: Optional[BenchmarkPerformance] = None
 
 
 # Endpoints
