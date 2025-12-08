@@ -4,6 +4,35 @@
  */
 
 /**
+ * Get current Plotly template based on theme
+ */
+function getPlotlyTemplate() {
+    const theme = document.documentElement.getAttribute('data-theme');
+    return theme === 'dark' ? 'plotly_dark' : 'plotly_white';
+}
+
+/**
+ * Get theme-aware colors
+ */
+function getThemeColors() {
+    const theme = document.documentElement.getAttribute('data-theme');
+    if (theme === 'dark') {
+        return {
+            paper_bgcolor: '#1a1f37',
+            plot_bgcolor: '#1a1f37',
+            font: { color: '#f9fafb' },
+            gridcolor: '#2d3548'
+        };
+    }
+    return {
+        paper_bgcolor: '#ffffff',
+        plot_bgcolor: '#ffffff',
+        font: { color: '#1e2139' },
+        gridcolor: '#e5e7eb'
+    };
+}
+
+/**
  * Render Efficient Frontier scatter plot
  * @param {Object} data - Frontier data with simulated and optimal portfolios
  */
@@ -74,26 +103,31 @@ function renderEfficientFrontier(data) {
                         optimal_portfolios.min_volatility.performance.sharpe_ratio.toFixed(2) + '<extra></extra>'
     };
 
+    const themeColors = getThemeColors();
     const layout = {
-        title: 'Efficient Frontier Analysis',
         xaxis: {
             title: 'Volatility (Risk)',
-            tickformat: '.1%'
+            tickformat: '.1%',
+            gridcolor: themeColors.gridcolor
         },
         yaxis: {
             title: 'Expected Annual Return',
-            tickformat: '.1%'
+            tickformat: '.1%',
+            gridcolor: themeColors.gridcolor
         },
-        template: 'plotly_white',
+        template: getPlotlyTemplate(),
+        paper_bgcolor: themeColors.paper_bgcolor,
+        plot_bgcolor: themeColors.plot_bgcolor,
+        font: themeColors.font,
         hovermode: 'closest',
-        height: 500,
+        height: 400,
         showlegend: true,
+        margin: { l: 60, r: 20, t: 20, b: 60 },
         legend: {
             x: 0.01,
             y: 0.99,
-            bgcolor: 'rgba(255, 255, 255, 0.8)',
-            bordercolor: 'black',
-            borderwidth: 1
+            bgcolor: 'rgba(0, 0, 0, 0.3)',
+            font: themeColors.font
         }
     };
 
@@ -142,15 +176,20 @@ function renderAllocationChart(weights, allocations) {
         }
     }];
 
+    const themeColors = getThemeColors();
     const layout = {
-        title: 'Optimal Allocation (Max Sharpe)',
-        template: 'plotly_white',
+        template: getPlotlyTemplate(),
+        paper_bgcolor: themeColors.paper_bgcolor,
+        plot_bgcolor: themeColors.plot_bgcolor,
+        font: themeColors.font,
         showlegend: true,
         height: 400,
+        margin: { l: 20, r: 20, t: 20, b: 20 },
         legend: {
             orientation: 'v',
-            x: 1.1,
-            y: 0.5
+            x: 1.05,
+            y: 0.5,
+            font: themeColors.font
         }
     };
 
@@ -209,19 +248,28 @@ function renderNormalizedPrices(stockData) {
         });
     }
 
+    const themeColors = getThemeColors();
     const layout = {
-        title: 'Normalized Stock Performance (Starting Value = 1.0)',
         xaxis: {
-            title: 'Date'
+            title: 'Date',
+            gridcolor: themeColors.gridcolor
         },
         yaxis: {
             title: 'Relative Performance',
-            tickformat: '.2f'
+            tickformat: '.2f',
+            gridcolor: themeColors.gridcolor
         },
-        template: 'plotly_white',
+        template: getPlotlyTemplate(),
+        paper_bgcolor: themeColors.paper_bgcolor,
+        plot_bgcolor: themeColors.plot_bgcolor,
+        font: themeColors.font,
         hovermode: 'x unified',
         height: 400,
-        showlegend: true
+        margin: { l: 60, r: 20, t: 20, b: 60 },
+        showlegend: true,
+        legend: {
+            font: themeColors.font
+        }
     };
 
     const config = {
@@ -280,19 +328,36 @@ function renderBacktestChart(stockData, weights, initialInvestment) {
     const finalValue = portfolioValues[portfolioValues.length - 1];
     const totalReturn = ((finalValue - initialInvestment) / initialInvestment * 100);
 
+    const themeColors = getThemeColors();
     const layout = {
-        title: `Portfolio Growth (Total Return: ${totalReturn >= 0 ? '+' : ''}${totalReturn.toFixed(2)}%)`,
         xaxis: {
-            title: 'Date'
+            title: 'Date',
+            gridcolor: themeColors.gridcolor
         },
         yaxis: {
             title: 'Portfolio Value ($)',
-            tickformat: '$,.0f'
+            tickformat: '$,.0f',
+            gridcolor: themeColors.gridcolor
         },
-        template: 'plotly_white',
+        template: getPlotlyTemplate(),
+        paper_bgcolor: themeColors.paper_bgcolor,
+        plot_bgcolor: themeColors.plot_bgcolor,
+        font: themeColors.font,
         hovermode: 'x',
         height: 400,
-        showlegend: false
+        margin: { l: 70, r: 20, t: 20, b: 60 },
+        showlegend: false,
+        annotations: [{
+            text: `Total Return: ${totalReturn >= 0 ? '+' : ''}${totalReturn.toFixed(2)}%`,
+            xref: 'paper',
+            yref: 'paper',
+            x: 0.5,
+            y: 1.05,
+            xanchor: 'center',
+            yanchor: 'bottom',
+            showarrow: false,
+            font: { size: 14, color: totalReturn >= 0 ? '#10b981' : '#ef4444' }
+        }]
     };
 
     const config = {
@@ -354,10 +419,14 @@ function renderCorrelationHeatmap(stockData) {
         hovertemplate: '%{y} vs %{x}<br>Correlation: %{z:.3f}<extra></extra>'
     };
 
+    const themeColors = getThemeColors();
     const layout = {
-        title: 'Stock Return Correlation Matrix',
-        template: 'plotly_white',
+        template: getPlotlyTemplate(),
+        paper_bgcolor: themeColors.paper_bgcolor,
+        plot_bgcolor: themeColors.plot_bgcolor,
+        font: themeColors.font,
         height: 400,
+        margin: { l: 80, r: 20, t: 20, b: 80 },
         xaxis: {
             side: 'bottom'
         },

@@ -104,8 +104,18 @@ function initializeAssetDropdown() {
     dropdownBtn.addEventListener('click', function(e) {
         e.stopPropagation();
         const isOpen = dropdown.style.display === 'block';
-        dropdown.style.display = isOpen ? 'none' : 'block';
-        dropdownBtn.classList.toggle('open', !isOpen);
+
+        if (!isOpen) {
+            // Position dropdown relative to button
+            const rect = dropdownBtn.getBoundingClientRect();
+            dropdown.style.top = (rect.bottom + 8) + 'px';
+            dropdown.style.left = rect.left + 'px';
+            dropdown.style.display = 'block';
+            dropdownBtn.classList.add('open');
+        } else {
+            dropdown.style.display = 'none';
+            dropdownBtn.classList.remove('open');
+        }
     });
 
     // Close dropdown when clicking outside
