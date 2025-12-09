@@ -4,7 +4,7 @@
  */
 
 // Global State
-let selectedTickers = ['GLD']; // Default selections
+let selectedTickers = ['GOOGL', 'NVDA']; // Default selections
 let currentPortfolioData = null;
 let autoRefreshTimeout = null;
 

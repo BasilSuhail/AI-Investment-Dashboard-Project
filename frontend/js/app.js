@@ -612,7 +612,7 @@ function initializeDemoButton() {
 
     demoBtn.addEventListener('click', () => {
         // Set demo portfolio: 5 popular tech stocks
-        selectedStocks = ['AAPL', 'MSFT', 'GOOGL', 'NVDA', 'AMZN'];
+        selectedStocks = ['GOOGL', 'NVDA'];
 
         // Update UI
         renderChips();
