@@ -12,7 +12,7 @@ Your portfolio optimization dashboard is ready to run. Here's how to start it:
 cd "AI Investment Dashboard Project "
 source venv/bin/activate
 cd backend
-python -m uvicorn main:app --reload --host 0.0.0.0 --port 8000
+uvicorn main:app --reload --host 127.0.0.1 --port 8000
 ```
 
 **Expected output:**
