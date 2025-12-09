@@ -22,7 +22,7 @@ const AVAILABLE_STOCKS = [
 ];
 
 // Global state
-let selectedStocks = ['GLD'];
+let selectedStocks = ['GOOGL', 'NVDA'];
 let selectedMonths = 12;
 let currentData = null;
 

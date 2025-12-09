@@ -44,28 +44,29 @@ def generate_mock_stock_data(tickers: list, start_date: str, end_date: str):
     prices = pd.DataFrame(index=date_range)
 
     # Different starting prices and volatilities for each ticker
-    # Increased drift to ensure positive expected returns above risk-free rate (~3%)
+    # Significantly increased drift to guarantee positive expected returns above risk-free rate (~3%)
+    # Daily drift of 0.0008-0.0012 translates to ~20-30% annual return
     stock_params = {
-        'AAPL': {'start_price': 150, 'drift': 0.0006, 'volatility': 0.02},
-        'MSFT': {'start_price': 300, 'drift': 0.0007, 'volatility': 0.018},
-        'TSLA': {'start_price': 200, 'drift': 0.0005, 'volatility': 0.035},
-        'GOOGL': {'start_price': 130, 'drift': 0.00065, 'volatility': 0.022},
-        'AMZN': {'start_price': 140, 'drift': 0.00068, 'volatility': 0.025},
-        'NVDA': {'start_price': 450, 'drift': 0.0008, 'volatility': 0.03},
-        'META': {'start_price': 300, 'drift': 0.0007, 'volatility': 0.028},
-        'NFLX': {'start_price': 450, 'drift': 0.0006, 'volatility': 0.032},
-        'JPM': {'start_price': 150, 'drift': 0.00055, 'volatility': 0.024},
-        'V': {'start_price': 230, 'drift': 0.00065, 'volatility': 0.020},
-        'WMT': {'start_price': 150, 'drift': 0.0005, 'volatility': 0.018},
-        'DIS': {'start_price': 100, 'drift': 0.00055, 'volatility': 0.026},
-        'BTC-USD': {'start_price': 30000, 'drift': 0.001, 'volatility': 0.055},
-        'ETH-USD': {'start_price': 2000, 'drift': 0.0009, 'volatility': 0.06},
-        'GLD': {'start_price': 180, 'drift': 0.0004, 'volatility': 0.015},
+        'AAPL': {'start_price': 150, 'drift': 0.0010, 'volatility': 0.02},
+        'MSFT': {'start_price': 300, 'drift': 0.0011, 'volatility': 0.018},
+        'TSLA': {'start_price': 200, 'drift': 0.0009, 'volatility': 0.035},
+        'GOOGL': {'start_price': 130, 'drift': 0.0012, 'volatility': 0.022},
+        'AMZN': {'start_price': 140, 'drift': 0.0011, 'volatility': 0.025},
+        'NVDA': {'start_price': 450, 'drift': 0.0013, 'volatility': 0.03},
+        'META': {'start_price': 300, 'drift': 0.0011, 'volatility': 0.028},
+        'NFLX': {'start_price': 450, 'drift': 0.0010, 'volatility': 0.032},
+        'JPM': {'start_price': 150, 'drift': 0.0009, 'volatility': 0.024},
+        'V': {'start_price': 230, 'drift': 0.0010, 'volatility': 0.020},
+        'WMT': {'start_price': 150, 'drift': 0.0008, 'volatility': 0.018},
+        'DIS': {'start_price': 100, 'drift': 0.0009, 'volatility': 0.026},
+        'BTC-USD': {'start_price': 30000, 'drift': 0.0015, 'volatility': 0.055},
+        'ETH-USD': {'start_price': 2000, 'drift': 0.0014, 'volatility': 0.06},
+        'GLD': {'start_price': 180, 'drift': 0.0007, 'volatility': 0.015},
     }
 
     for ticker in tickers:
-        # Get params or use defaults (higher drift to ensure positive returns)
-        params = stock_params.get(ticker, {'start_price': 100, 'drift': 0.0006, 'volatility': 0.02})
+        # Get params or use defaults (much higher drift to guarantee optimization works)
+        params = stock_params.get(ticker, {'start_price': 100, 'drift': 0.0010, 'volatility': 0.02})
 
         # Generate random walk with drift
         np.random.seed(hash(ticker) % 1000)  # Consistent data for same ticker
