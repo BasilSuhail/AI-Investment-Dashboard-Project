@@ -174,6 +174,45 @@
                 <div id="portfolioChart" class="chart"></div>
             </div>
 
+            <!-- Risk Analysis Section -->
+            <div class="risk-analysis-section" id="riskAnalysisSection" style="display: none;">
+                <h3 class="section-title">Risk Analysis</h3>
+                <div class="risk-metrics-grid">
+                    <div class="risk-metric-card">
+                        <div class="risk-metric-label-with-tooltip">
+                            <span>Value at Risk (95%)</span>
+                            <span class="tooltip-icon">i
+                                <span class="tooltip-content">There's only a 5% chance you'll lose more than this amount in a single day. This helps you understand your worst-case daily loss under normal market conditions.</span>
+                            </span>
+                        </div>
+                        <div class="risk-metric-value" id="var95Value">--</div>
+                        <div class="risk-metric-description">95% confidence daily loss limit</div>
+                    </div>
+
+                    <div class="risk-metric-card">
+                        <div class="risk-metric-label-with-tooltip">
+                            <span>Value at Risk (99%)</span>
+                            <span class="tooltip-icon">i
+                                <span class="tooltip-content">There's only a 1% chance you'll lose more than this amount in a single day. This represents an extreme but still plausible worst-case scenario.</span>
+                            </span>
+                        </div>
+                        <div class="risk-metric-value" id="var99Value">--</div>
+                        <div class="risk-metric-description">99% confidence daily loss limit</div>
+                    </div>
+
+                    <div class="risk-metric-card">
+                        <div class="risk-metric-label-with-tooltip">
+                            <span>Maximum Drawdown</span>
+                            <span class="tooltip-icon">i
+                                <span class="tooltip-content">The largest peak-to-trough decline in your portfolio value historically. This shows the worst loss you would have experienced if you bought at the peak and held through the trough.</span>
+                            </span>
+                        </div>
+                        <div class="risk-metric-value" id="maxDrawdownValue">--</div>
+                        <div class="risk-metric-description" id="maxDrawdownDescription">Historical worst decline</div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Two Column Charts -->
             <div class="chart-grid">
                 <div class="chart-container">

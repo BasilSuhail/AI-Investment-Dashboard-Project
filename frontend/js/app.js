@@ -276,6 +276,9 @@ async function optimizePortfolio() {
         // Render metrics
         renderMetrics(stockData, frontierData, optimizationType);
 
+        // Render risk metrics
+        renderRiskMetrics(frontierData);
+
         // Render charts
         renderNormalizedPrices(stockData);
         renderBacktestChart(stockData, frontierData, optimizationType, investmentAmount, spyData);
@@ -376,6 +379,40 @@ function renderMetrics(stockData, frontierData, optimizationType) {
         }
     } else {
         document.getElementById('sp500Card').style.display = 'none';
+    }
+}
+
+/**
+ * Render risk metrics
+ */
+function renderRiskMetrics(frontierData) {
+    const riskSection = document.getElementById('riskAnalysisSection');
+
+    if (frontierData.risk_metrics) {
+        const risk = frontierData.risk_metrics;
+
+        // Show risk section
+        riskSection.style.display = 'block';
+
+        // VaR 95%
+        document.getElementById('var95Value').textContent = `$${Math.abs(risk.value_at_risk_95).toLocaleString('en-US', {minimumFractionDigits: 0, maximumFractionDigits: 0})}`;
+
+        // VaR 99%
+        document.getElementById('var99Value').textContent = `$${Math.abs(risk.value_at_risk_99).toLocaleString('en-US', {minimumFractionDigits: 0, maximumFractionDigits: 0})}`;
+
+        // Max Drawdown
+        const maxDrawdownPercent = (risk.max_drawdown * 100).toFixed(2);
+        document.getElementById('maxDrawdownValue').textContent = `-${maxDrawdownPercent}%`;
+
+        // Update description with duration
+        const duration = risk.max_drawdown_duration_days;
+        const durationText = duration > 0
+            ? `over ${duration} day${duration !== 1 ? 's' : ''}`
+            : 'Historical worst decline';
+        document.getElementById('maxDrawdownDescription').textContent = durationText;
+    } else {
+        // Hide risk section if no data
+        riskSection.style.display = 'none';
     }
 }
 
