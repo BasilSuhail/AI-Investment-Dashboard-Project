@@ -6,6 +6,7 @@ Handles portfolio optimization and efficient frontier calculations
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from typing import Optional, Dict, List
+import numpy as np
 
 import sys
 import os

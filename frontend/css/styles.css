@@ -638,45 +638,51 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 
 /* Risk Analysis Section */
 .risk-analysis-section {
+    padding: 0 0 4rem 0;
     margin-bottom: 4rem;
+    border-bottom: 1px solid var(--border);
 }
 
 .section-title {
-    font-size: 1.5rem;
-    font-weight: 700;
+    font-size: 1.125rem;
+    font-weight: 600;
     color: var(--text-primary);
-    margin-bottom: 1.5rem;
+    margin-bottom: 2.5rem;
     letter-spacing: -0.02em;
 }
 
 .risk-metrics-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: 2rem;
+    gap: 2.5rem;
 }
 
 .risk-metric-card {
-    background: var(--bg-card);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 2rem;
-    transition: all 0.3s ease;
+    background: transparent;
+    border: none;
+    border-radius: 0;
+    padding: 0;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .risk-metric-card:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
-    border-color: var(--accent-primary);
+    transform: translateY(-2px);
+}
+
+.risk-metric-card:hover .risk-metric-value {
+    color: var(--accent-primary);
+    text-shadow: 0 0 20px var(--accent-glow);
 }
 
 .risk-metric-label-with-tooltip {
     display: flex;
     align-items: center;
-    font-size: 0.875rem;
-    font-weight: 600;
+    gap: 0.5rem;
+    font-size: 0.75rem;
+    font-weight: 700;
     color: var(--text-secondary);
     text-transform: uppercase;
-    letter-spacing: 0.05em;
+    letter-spacing: 0.1em;
     margin-bottom: 1rem;
 }
 
@@ -686,12 +692,14 @@ input[type="date"]::-webkit-calendar-picker-indicator {
     color: var(--text-primary);
     margin-bottom: 0.5rem;
     letter-spacing: -0.02em;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .risk-metric-description {
-    font-size: 0.8125rem;
+    font-size: 0.875rem;
     color: var(--text-secondary);
     line-height: 1.5;
+    font-weight: 400;
 }
 
 /* Export Buttons */
