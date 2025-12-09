@@ -33,6 +33,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initializeControls();
     initializeThemeToggle();
     initializeExportButtons();
+    initializeDemoButton();
     renderChips();
 });
 
@@ -198,6 +199,12 @@ async function optimizePortfolio() {
         alert('Please select at least 2 stocks');
         return;
     }
+
+    // Hide hero section and show results container
+    const heroSection = document.getElementById('heroSection');
+    const resultsContainer = document.getElementById('resultsContainer');
+    heroSection.style.display = 'none';
+    resultsContainer.style.display = 'block';
 
     // Show loading
     document.getElementById('loadingOverlay').style.display = 'flex';
@@ -593,4 +600,49 @@ function downloadFile(content, filename, mimeType) {
     link.click();
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
+}
+
+/**
+ * Initialize demo button
+ */
+function initializeDemoButton() {
+    const demoBtn = document.getElementById('demoBtn');
+    const heroSection = document.getElementById('heroSection');
+    const resultsContainer = document.getElementById('resultsContainer');
+
+    demoBtn.addEventListener('click', () => {
+        // Set demo portfolio: 5 popular tech stocks
+        selectedStocks = ['AAPL', 'MSFT', 'GOOGL', 'NVDA', 'AMZN'];
+
+        // Update UI
+        renderChips();
+
+        // Set investment amount and time horizon
+        document.getElementById('investmentAmount').value = 100000;
+        document.getElementById('timeHorizon').value = 12;
+        selectedMonths = 12;
+
+        // Enable S&P 500 comparison
+        document.getElementById('compareSP500').checked = true;
+
+        // Hide hero, show results container (even if empty for now)
+        heroSection.style.display = 'none';
+        resultsContainer.style.display = 'block';
+
+        // Auto-optimize
+        setTimeout(() => {
+            optimizePortfolio();
+        }, 300);
+    });
+}
+
+/**
+ * Show hero section (called when page loads with no data)
+ */
+function showHeroSection() {
+    const heroSection = document.getElementById('heroSection');
+    const resultsContainer = document.getElementById('resultsContainer');
+
+    heroSection.style.display = 'flex';
+    resultsContainer.style.display = 'none';
 }
