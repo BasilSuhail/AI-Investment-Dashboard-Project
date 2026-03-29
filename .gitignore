@@ -2,40 +2,14 @@
 __pycache__/
 *.py[cod]
 *$py.class
-*.so
-.Python
-venv/
+.venv
 env/
+venv/
 ENV/
-*.egg-info/
-dist/
+
+# Node/React
+node_modules/
 build/
-
-# Environment variables
+dist/
 .env
-backend/.env
-
-# IDE
-.vscode/
-.idea/
-*.swp
-*.swo
-*~
-
-# OS
 .DS_Store
-Thumbs.db
-
-# Logs
-logs/
-*.log
-
-# Streamlit (old files)
-.streamlit/
-
-# Cache
-.cache/
-*.cache
-
-# Roadmap and planning docs
-roadmap*.md
